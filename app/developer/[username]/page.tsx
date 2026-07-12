@@ -1,0 +1,224 @@
+'use client';
+
+import { ArrowLeft, Heart, MessageCircle, Share2, MapPin, Calendar, Users, Star, ExternalLink, Link, Copy, Check } from 'lucide-react';
+import { useState, use } from 'react';
+import PublicLayout from '../../public-layout';
+
+export default function DeveloperProfilePage({ params }: { params: Promise<{ username: string }> }) {
+  const resolvedParams = use(params);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const developer = {
+    username: resolvedParams.username,
+    name: 'Sarah Johnson',
+    handle: '@sarahj',
+    role: 'Senior Developer at TechCorp',
+    location: 'San Francisco',
+    joined: 'Dec 2023',
+    projects: 15,
+    followers: 45,
+    stars: 89,
+    skills: ['React', 'TypeScript', 'Node.js', 'Next.js'],
+    github: 'https://github.com/sarahj',
+    linkedin: 'https://linkedin.com/in/sarahj',
+    portfolio: 'https://sarahj.dev',
+    bio: 'Passionate full-stack developer with 5+ years of experience building scalable web applications. Love open source and helping others learn to code.',
+  };
+
+  const projects = [
+    { id: 1, title: 'AI Chat App', languages: ['React', 'TypeScript'], likes: 45 },
+    { id: 2, title: 'DevPortfolio', languages: ['Next.js', 'TypeScript'], likes: 32 },
+    { id: 3, title: 'React Dashboard', languages: ['React', 'Tailwind'], likes: 28 },
+    { id: 4, title: 'Task Manager', languages: ['Vue', 'TypeScript'], likes: 21 },
+    { id: 5, title: 'Social Media App', languages: ['React Native', 'Firebase'], likes: 18 },
+    { id: 6, title: 'EcoTracker', languages: ['Python', 'Django'], likes: 15 },
+  ];
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <PublicLayout>
+      <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <a href="/developers" className="inline-flex items-center gap-2 text-gray-600 hover:text-black transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Developers
+            </a>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsFollowing(!isFollowing)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                  isFollowing ? 'bg-[#0070f3] text-white' : 'bg-black text-white hover:bg-gray-800'
+                }`}
+              >
+                {isFollowing ? 'Following' : 'Follow'}
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+                <MessageCircle className="w-4 h-4" />
+                Message
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+                <Share2 className="w-4 h-4" />
+                Share
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Profile Header */}
+        <div className="bg-white border border-gray-200 rounded-xl p-8 mb-8">
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Avatar */}
+            <div className="w-32 h-32 bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-5xl">👤</span>
+            </div>
+
+            {/* Info */}
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold mb-2">{developer.name}</h1>
+              <p className="text-gray-600 mb-4">{developer.handle} • {developer.role}</p>
+
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  {developer.location}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Joined {developer.joined}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-6 text-sm mb-4">
+                <span className="flex items-center gap-1">
+                  <span className="font-semibold">{developer.projects}</span> projects
+                </span>
+                <span className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  <span className="font-semibold">{developer.followers}</span> followers
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <span className="font-semibold">{developer.stars}</span> stars
+                </span>
+              </div>
+
+              {/* Skills */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {developer.skills.map((skill) => (
+                  <span key={skill} className="text-sm font-medium text-[#0070f3] bg-[#0070f3]/10 px-3 py-1 rounded-full">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+
+              {/* Social Links */}
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-2">
+                  <Link className="w-5 h-5 text-gray-600" />
+                  <button
+                    onClick={() => copyToClipboard(developer.github)}
+                    className="text-sm text-gray-600 hover:text-[#0070f3] transition-colors flex items-center gap-1"
+                  >
+                    {copied ? 'Copied!' : developer.github}
+                    {copied && <Check className="w-4 h-4 text-green-500" />}
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link className="w-5 h-5 text-gray-600" />
+                  <button
+                    onClick={() => copyToClipboard(developer.linkedin)}
+                    className="text-sm text-gray-600 hover:text-[#0070f3] transition-colors flex items-center gap-1"
+                  >
+                    {copied ? 'Copied!' : developer.linkedin}
+                    {copied && <Check className="w-4 h-4 text-green-500" />}
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ExternalLink className="w-5 h-5 text-gray-600" />
+                  <button
+                    onClick={() => copyToClipboard(developer.portfolio)}
+                    className="text-sm text-gray-600 hover:text-[#0070f3] transition-colors flex items-center gap-1"
+                  >
+                    {copied ? 'Copied!' : developer.portfolio}
+                    {copied && <Check className="w-4 h-4 text-green-500" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Bio */}
+              <p className="text-gray-700 mt-4 max-w-2xl">{developer.bio}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* All Projects */}
+        <div>
+          <h2 className="text-2xl font-bold mb-6">All Projects by {developer.name}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {projects.map((project) => (
+              <a
+                key={project.id}
+                href={`/project/${project.id}`}
+                className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-gray-300 transition-all cursor-pointer"
+              >
+                {/* Screenshot */}
+                <div className="aspect-video bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 flex items-center justify-center">
+                  <span className="text-4xl">📸</span>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  {/* Languages */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {project.languages.map((lang) => (
+                      <span key={lang} className="text-xs font-medium text-[#0070f3] bg-[#0070f3]/10 px-2 py-1 rounded-full">
+                        {lang}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="font-semibold text-lg mb-2 group-hover:text-[#0070f3] transition-colors">
+                    {project.title}
+                  </h3>
+
+                  {/* Stats */}
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Heart className="w-4 h-4" />
+                      {project.likes} likes
+                    </span>
+                  </div>
+
+                  {/* View Button */}
+                  <button className="w-full mt-4 bg-black text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
+                    View
+                  </button>
+                </div>
+              </a>
+            ))}
+          </div>
+
+          {/* Load More */}
+          <div className="text-center">
+            <button className="inline-flex items-center gap-2 px-6 py-3 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+              Load More Projects
+            </button>
+          </div>
+        </div>
+      </div>
+      </div>
+    </PublicLayout>
+  );
+}
