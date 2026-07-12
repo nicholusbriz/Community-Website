@@ -153,37 +153,63 @@ export default function Home() {
       <div className="font-sans bg-white text-black">
 
         {/* ===== HERO SECTION ===== */}
-        <section id="hero" className="relative overflow-hidden bg-gradient-to-b from-gray-50 to-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-            <div className="text-center max-w-4xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-700 mb-6">
-                <Sparkles className="w-4 h-4" />
-                Building the future of collaboration
+        <section id="hero" className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.16),_transparent_40%),linear-gradient(135deg,_#f8fbff_0%,_#ffffff_55%,_#f5f7ff_100%)]">
+          <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
+            <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
+              <div className="max-w-2xl">
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/80 px-4 py-2 text-sm font-medium text-blue-700 shadow-sm backdrop-blur">
+                  <Sparkles className="h-4 w-4" />
+                  Welcome to Community Ecosystem
+                </div>
+
+                <h1 className="mb-6 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+                  Community Ecosystem
+                </h1>
+
+                <p className="mb-8 text-lg leading-8 text-slate-600 sm:text-xl">
+                  We connect builders, learners, and changemakers in one thriving space to discover opportunities, share knowledge, and grow together.
+                </p>
+
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Link href="/join" className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800">
+                    Join the Community
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link href="/projects" className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-7 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
+                    Explore Projects
+                  </Link>
+                </div>
+
+                <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-600">
+                  <span className="rounded-full bg-white px-3 py-2 shadow-sm">Mentorship</span>
+                  <span className="rounded-full bg-white px-3 py-2 shadow-sm">Projects</span>
+                  <span className="rounded-full bg-white px-3 py-2 shadow-sm">Community events</span>
+                </div>
               </div>
-              
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
-                🚀 Build Together, Create Amazing Projects
-              </h1>
-              
-              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-10">
-                Connect with developers, showcase your work, and find collaborators for your next big idea.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/join" className="inline-flex items-center justify-center gap-2 bg-black text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors shadow-lg shadow-gray-200">
-                  Get Started
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link href="/programs" className="inline-flex items-center justify-center border border-gray-200 bg-white text-gray-700 px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition-colors">
-                  Explore Programs
-                </Link>
-                <Link href="/events" className="inline-flex items-center justify-center border border-gray-200 bg-white text-gray-700 px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition-colors">
-                  View Events
-                </Link>
+
+              <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+                <div className="rounded-2xl bg-slate-900 p-6 text-white">
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-200">Our mission</p>
+                  <h2 className="mt-3 text-2xl font-semibold">
+                    Build meaningful projects and lasting connections.
+                  </h2>
+                  <p className="mt-4 text-sm leading-7 text-slate-300">
+                    From collaboration and learning to discovery and growth, this platform is designed to support every stage of your creative journey.
+                  </p>
+                </div>
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-2xl font-semibold text-slate-900">1k+</p>
+                    <p className="mt-1 text-sm text-slate-600">Members and growing</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-2xl font-semibold text-slate-900">24/7</p>
+                    <p className="mt-1 text-sm text-slate-600">Support and inspiration</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-200 w-200 bg-gradient-to-r from-[#0070f3]/5 to-[#7928ca]/5 rounded-full blur-3xl pointer-events-none" />
         </section>
 
         {/* ===== STATS SECTION ===== */}
