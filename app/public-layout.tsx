@@ -103,23 +103,21 @@ export default function PublicLayout({
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href));
   const toggleMobileGroup = (key: string) => setExpandedMobileGroup((current) => (current === key ? null : key));
 
-  // Page transition variants
+  // Simplified page transition - removed complex easing
   const pageVariants = {
     initial: { opacity: 0, y: 10 },
     animate: { 
       opacity: 1, 
       y: 0,
       transition: {
-        duration: 0.3,
-        ease: "easeOut"
+        duration: 0.3
       }
     },
     exit: { 
       opacity: 0,
       y: -10,
       transition: {
-        duration: 0.2,
-        ease: "easeIn"
+        duration: 0.2
       }
     },
   };
@@ -356,7 +354,7 @@ export default function PublicLayout({
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              transition={{ duration: 0.3 }}
               className="absolute top-0 left-0 h-full w-80 max-w-[80%] bg-white shadow-2xl overflow-y-auto"
             >
               <div className="p-4">
