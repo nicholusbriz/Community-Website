@@ -1,8 +1,10 @@
 'use client';
 
-import { ArrowLeft, Heart, MessageCircle, Share2, Flag, Copy, Check, User, Calendar, Eye, Users, ExternalLink, Link } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Share2, Flag, Copy, Check, User, Calendar, Eye, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { useState, use } from 'react';
+import Link from 'next/link';
 import PublicLayout from '../../public-layout';
+import { PageShell } from '../../../components/placeholders/page-shell';
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -10,16 +12,17 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [isLiked, setIsLiked] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const project = {
-    id: resolvedParams.id,
-    title: 'AI Chat App',
-    owner: 'Sarah Johnson',
-    date: 'Dec 2024',
-    views: '1.2K',
-    likes: 45,
-    comments: 12,
-    languages: ['React', 'TypeScript', 'Tailwind', 'OpenAI'],
-    description: `A powerful AI-powered chat application that leverages OpenAI's GPT-4 to provide intelligent conversations. Built with React and TypeScript, featuring a modern UI with real-time messaging, conversation history, and customizable AI personalities.
+  const projects = [
+    {
+      id: '1',
+      title: 'AI Chat App',
+      owner: 'Sarah Johnson',
+      date: 'Dec 2024',
+      views: '1.2K',
+      likes: 45,
+      comments: 12,
+      languages: ['React', 'TypeScript', 'Tailwind', 'OpenAI'],
+      description: `A powerful AI-powered chat application that leverages OpenAI's GPT-4 to provide intelligent conversations. Built with React and TypeScript, featuring a modern UI with real-time messaging, conversation history, and customizable AI personalities.
 
 Key features include:
 - Real-time AI responses powered by GPT-4
@@ -28,14 +31,53 @@ Key features include:
 - Dark mode support
 - Responsive design for all devices
 - Export conversations to various formats`,
-    screenshots: ['📸', '📸', '📸', '📸'],
-    liveDemo: 'https://ai-chat-app.example.com',
-    github: 'https://github.com/sarahj/ai-chat-app',
-    lookingForCollaborators: true,
-    skillsNeeded: ['React', 'Node.js', 'MongoDB'],
-    ownerProjects: 12,
-    ownerFollowers: 45,
-  };
+      screenshots: ['📸', '📸', '📸', '📸'],
+      liveDemo: 'https://ai-chat-app.example.com',
+      github: 'https://github.com/sarahj/ai-chat-app',
+      lookingForCollaborators: true,
+      skillsNeeded: ['React', 'Node.js', 'MongoDB'],
+      ownerProjects: 12,
+      ownerFollowers: 45,
+    },
+    {
+      id: '2',
+      title: 'DevPortfolio',
+      owner: 'Mike Chen',
+      date: 'Nov 2024',
+      views: '840',
+      likes: 32,
+      comments: 8,
+      languages: ['Next.js', 'TypeScript', 'Tailwind'],
+      description: 'A polished portfolio builder tailored for developers who want to showcase their work and connect with collaborators.',
+      screenshots: ['📸', '📸', '📸'],
+      liveDemo: 'https://devportfolio.example.com',
+      github: 'https://github.com/mikechen/devportfolio',
+      lookingForCollaborators: false,
+      skillsNeeded: ['Next.js', 'UI Design'],
+      ownerProjects: 10,
+      ownerFollowers: 28,
+    },
+    {
+      id: '3',
+      title: 'React Dashboard',
+      owner: 'Emily Rodriguez',
+      date: 'Oct 2024',
+      views: '640',
+      likes: 28,
+      comments: 15,
+      languages: ['React', 'Tailwind', 'Chart.js'],
+      description: 'A modern analytics dashboard that helps teams track growth, performance, and delivery milestones.',
+      screenshots: ['📸', '📸'],
+      liveDemo: 'https://react-dashboard.example.com',
+      github: 'https://github.com/emilyrodriguez/react-dashboard',
+      lookingForCollaborators: true,
+      skillsNeeded: ['React', 'Data Viz'],
+      ownerProjects: 8,
+      ownerFollowers: 19,
+    },
+  ];
+
+  const project = projects.find((item) => item.id === resolvedParams.id) ?? projects[0];
 
   const comments = [
     { id: 1, user: 'Mike', text: 'Great project! Would love to help with the backend.', time: '2 hours ago' },
@@ -50,8 +92,7 @@ Key features include:
 
   return (
     <PublicLayout>
-      <div className="min-h-screen bg-white">
-      {/* Header */}
+      <PageShell>
       <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
@@ -89,7 +130,7 @@ Key features include:
             {/* Project Header */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               {/* Main Screenshot */}
-              <div className="aspect-video bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 flex items-center justify-center">
+              <div className="aspect-video bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 flex items-center justify-center">
                 <span className="text-6xl">📸</span>
               </div>
 
@@ -161,7 +202,7 @@ Key features include:
                 <h3 className="font-semibold mb-3">Screenshots Gallery</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {project.screenshots.map((screenshot, index) => (
-                    <div key={index} className="aspect-video bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-lg flex items-center justify-center">
+                    <div key={index} className="aspect-video bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-lg flex items-center justify-center">
                       <span className="text-2xl">{screenshot}</span>
                     </div>
                   ))}
@@ -188,7 +229,7 @@ Key features include:
                 </div>
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <Link className="w-5 h-5 text-[#0070f3]" />
+                    <LinkIcon className="w-5 h-5 text-[#0070f3]" />
                     <div>
                       <p className="font-medium">GitHub</p>
                       <p className="text-sm text-gray-500">{project.github}</p>
@@ -266,7 +307,7 @@ Key features include:
             <div className="bg-white border border-gray-200 rounded-xl p-6">
               <h3 className="font-semibold mb-4">Project Owner</h3>
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center">
                   <span className="text-2xl">👤</span>
                 </div>
                 <div>
@@ -276,9 +317,9 @@ Key features include:
                 </div>
               </div>
               <div className="space-y-2">
-                <a href="/developer/sarahj" className="block w-full text-center py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                <Link href="/developer/sarahj" className="block w-full text-center py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
                   View Profile
-                </a>
+                </Link>
                 <button className="block w-full text-center py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
                   Follow
                 </button>
@@ -307,7 +348,7 @@ Key features include:
               <div className="grid grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
                   <a key={i} href={`/project/${i}`} className="group">
-                    <div className="aspect-video bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-lg mb-2 flex items-center justify-center">
+                    <div className="aspect-video bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-lg mb-2 flex items-center justify-center">
                       <span className="text-xl">📸</span>
                     </div>
                     <p className="text-sm font-medium group-hover:text-[#0070f3] transition-colors">Project {i}</p>
@@ -318,7 +359,7 @@ Key features include:
           </div>
         </div>
       </div>
-    </div>
+    </PageShell>
     </PublicLayout>
   );
 }

@@ -1,7 +1,11 @@
-import { Users, FolderGit2, MessageCircle, BarChart3, Sparkles, Zap, Shield, Globe2 } from 'lucide-react';
+import { Users, FolderGit2, MessageCircle, BarChart3, Sparkles, Zap, Shield, Globe2, Database, Table, Users as UsersIcon, Briefcase } from 'lucide-react';
 import PublicLayout from '../public-layout';
 
 export default function AboutPage() {
+  // ============================================================
+  // 📊 DATA SOURCE: Static content - No database fetch needed
+  // These features are defined in code and displayed statically
+  // ============================================================
   const features = [
     { icon: Users, title: "User Authentication", desc: "Secure registration and login system" },
     { icon: FolderGit2, title: "Project Management", desc: "Create and manage community projects" },
@@ -11,18 +15,57 @@ export default function AboutPage() {
     { icon: Zap, title: "Real-time Chat", desc: "Instant communication with team members" },
   ];
 
+  // ============================================================
+  // 📊 DATA SOURCE: Static content - No database fetch needed
+  // Values are defined in code and displayed statically
+  // ============================================================
   const values = [
     { icon: Shield, title: "Security First", desc: "Your data is protected with enterprise-grade security" },
     { icon: Globe2, title: "Global Community", desc: "Connect with developers from around the world" },
     { icon: Sparkles, title: "Innovation", desc: "Constantly improving with new features and updates" },
   ];
 
+  // ============================================================
+  // 📊 DATA SOURCE: users table (for team members)
+  // 🔗 API: GET /api/team
+  // 📋 FIELDS: id, name, role, bio, avatar, socialLinks
+  // 🔍 QUERY: SELECT id, name, role, bio, avatar, socialLinks 
+  //          FROM users WHERE role IN ('admin', 'mentor', 'leader') 
+  //          AND is_active = true ORDER BY role ASC
+  // ============================================================
+  const teamMembers = [
+    { id: 1, name: "Alex Rivera", role: "Founder & Lead Developer", bio: "Passionate about building developer communities", avatar: "/avatars/alex.jpg" },
+    { id: 2, name: "Sarah Chen", role: "Community Manager", bio: "Connecting developers worldwide", avatar: "/avatars/sarah-chen.jpg" },
+    { id: 3, name: "Marcus Johnson", role: "Lead Mentor", bio: "Helping developers grow their skills", avatar: "/avatars/marcus.jpg" },
+  ];
+
+  // ============================================================
+  // 📊 DATA SOURCE: stats table / computed from users table
+  // 🔗 API: GET /api/stats
+  // 📋 FIELDS: totalMembers, totalProjects, countriesRepresented, mentors
+  // ============================================================
+  const communityStats = {
+    totalMembers: 1234,
+    totalProjects: 456,
+    countriesRepresented: 45,
+    mentors: 12
+  };
+
   return (
     <PublicLayout>
       <div className="font-sans bg-white text-black py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
+
+          {/* ===== HEADER SECTION ===== */}
+          {/* 
+            📝 DATA: Static content - No database fetch needed
+          */}
           <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <span className="text-xs font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">Static Content</span>
+              <span className="text-xs text-gray-400">|</span>
+              <span className="text-xs text-gray-500">No API fetch required</span>
+            </div>
             <h1 className="text-4xl sm:text-5xl font-bold mb-6">About Community Ecosystem</h1>
             <p className="text-lg text-gray-600">
               A comprehensive platform where members can collaborate, learn, communicate, manage projects, 
@@ -30,8 +73,55 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Features */}
+          {/* ===== COMMUNITY STATS SECTION ===== */}
+          {/* 
+            📊 DATA SOURCE: stats table / computed from users & projects
+            🔗 API: GET /api/stats
+            📋 FIELDS: totalMembers, totalProjects, countriesRepresented, mentors
+            🔍 QUERY: 
+              - totalMembers: SELECT COUNT(*) FROM users WHERE is_active = true
+              - totalProjects: SELECT COUNT(*) FROM projects WHERE status = 'published'
+              - countriesRepresented: SELECT COUNT(DISTINCT country) FROM users
+              - mentors: SELECT COUNT(*) FROM users WHERE role = 'mentor' AND is_active = true
+          */}
           <section className="mb-20">
+            <div className="flex items-center gap-2 mb-4">
+              <Database className="w-4 h-4 text-blue-600" />
+              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Data Source: stats table / users + projects</span>
+              <span className="text-xs text-gray-400">|</span>
+              <span className="text-xs text-gray-500">GET /api/stats</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-gray-200 rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-blue-600">{communityStats.totalMembers.toLocaleString()}</div>
+                <p className="text-sm text-gray-600 mt-1">Total Members</p>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-gray-200 rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-green-600">{communityStats.totalProjects.toLocaleString()}</div>
+                <p className="text-sm text-gray-600 mt-1">Total Projects</p>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-gray-200 rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-purple-600">{communityStats.countriesRepresented}</div>
+                <p className="text-sm text-gray-600 mt-1">Countries</p>
+              </div>
+              <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-gray-200 rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-orange-600">{communityStats.mentors}</div>
+                <p className="text-sm text-gray-600 mt-1">Mentors</p>
+              </div>
+            </div>
+          </section>
+
+          {/* ===== FEATURES SECTION ===== */}
+          {/* 
+            📝 DATA: Static content - No database fetch needed
+            Features are defined in the features array above
+          */}
+          <section className="mb-20">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xs font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">Static Content</span>
+              <span className="text-xs text-gray-400">|</span>
+              <span className="text-xs text-gray-500">Defined in code - No API fetch</span>
+            </div>
             <h2 className="text-3xl font-bold mb-8 text-center">Platform Features</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((feature, index) => {
@@ -52,8 +142,17 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* Values */}
+          {/* ===== VALUES SECTION ===== */}
+          {/* 
+            📝 DATA: Static content - No database fetch needed
+            Values are defined in the values array above
+          */}
           <section className="mb-20">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xs font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">Static Content</span>
+              <span className="text-xs text-gray-400">|</span>
+              <span className="text-xs text-gray-500">Defined in code - No API fetch</span>
+            </div>
             <h2 className="text-3xl font-bold mb-8 text-center">Our Values</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {values.map((value, index) => {
@@ -74,8 +173,16 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* Mission */}
+          {/* ===== MISSION SECTION ===== */}
+          {/* 
+            📝 DATA: Static content - No database fetch needed
+          */}
           <section className="mb-20">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <span className="text-xs font-medium text-white/70 bg-white/20 px-3 py-1 rounded-full">Static Content</span>
+              <span className="text-xs text-white/50">|</span>
+              <span className="text-xs text-white/50">No API fetch required</span>
+            </div>
             <div className="bg-gradient-to-r from-[#0070f3] to-[#7928ca] rounded-2xl p-12 text-center text-white">
               <h2 className="text-3xl font-bold mb-4">Our Mission</h2>
               <p className="text-lg text-white/90 max-w-3xl mx-auto">
@@ -85,12 +192,54 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* Team */}
+          {/* ===== TEAM SECTION ===== */}
+          {/* 
+            📊 DATA SOURCE: users table
+            🔗 API: GET /api/team
+            📋 FIELDS: id, name, role, bio, avatar, socialLinks
+            🔍 QUERY: SELECT id, name, role, bio, avatar, socialLinks 
+                     FROM users WHERE role IN ('admin', 'mentor', 'leader') 
+                     AND is_active = true ORDER BY role ASC
+          */}
+          <section className="mb-20">
+            <div className="flex items-center gap-2 mb-4">
+              <Table className="w-4 h-4 text-indigo-600" />
+              <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Data Source: users table</span>
+              <span className="text-xs text-gray-400">|</span>
+              <span className="text-xs text-gray-500">GET /api/team</span>
+            </div>
+            <h2 className="text-3xl font-bold mb-8 text-center">Meet Our Team</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {teamMembers.map((member) => (
+                <div key={member.id} className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:shadow-xl transition-shadow">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#0070f3] to-[#7928ca] mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                    {member.name.charAt(0)}
+                  </div>
+                  <h3 className="font-semibold text-lg">{member.name}</h3>
+                  <p className="text-sm text-[#0070f3] font-medium">{member.role}</p>
+                  <p className="text-sm text-gray-600 mt-2">{member.bio}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ===== FOR DEVELOPERS SECTION ===== */}
+          {/* 
+            📝 DATA: Static content - No database fetch needed
+          */}
           <section>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xs font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">Static Content</span>
+              <span className="text-xs text-gray-400">|</span>
+              <span className="text-xs text-gray-500">No API fetch required</span>
+            </div>
             <h2 className="text-3xl font-bold mb-8 text-center">Built For Developers</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="bg-white border border-gray-200 rounded-xl p-8">
-                <h3 className="font-semibold text-xl mb-4">For Individuals</h3>
+                <h3 className="font-semibold text-xl mb-4 flex items-center gap-2">
+                  <UsersIcon className="w-5 h-5 text-[#0070f3]" />
+                  For Individuals
+                </h3>
                 <ul className="space-y-3 text-gray-600">
                   <li className="flex items-start gap-2">
                     <span className="text-[#0070f3] mt-1">✓</span>
@@ -111,7 +260,10 @@ export default function AboutPage() {
                 </ul>
               </div>
               <div className="bg-white border border-gray-200 rounded-xl p-8">
-                <h3 className="font-semibold text-xl mb-4">For Teams</h3>
+                <h3 className="font-semibold text-xl mb-4 flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-[#0070f3]" />
+                  For Teams
+                </h3>
                 <ul className="space-y-3 text-gray-600">
                   <li className="flex items-start gap-2">
                     <span className="text-[#0070f3] mt-1">✓</span>
@@ -133,6 +285,7 @@ export default function AboutPage() {
               </div>
             </div>
           </section>
+
         </div>
       </div>
     </PublicLayout>

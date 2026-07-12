@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Plus, FolderGit2, Heart, MessageCircle, Edit, Trash2, Share2, BarChart3, Search, Filter } from 'lucide-react';
 import Link from 'next/link';
+import { DashboardPageShell } from '../../../components/dashboard/dashboard-page-shell';
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,24 +23,22 @@ export default function ProjectsPage() {
   const sortOptions = ['Newest', 'Oldest', 'Most Liked', 'Most Comments'];
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">My Projects</h2>
-          <p className="text-gray-500 text-sm mt-1">Manage all your projects</p>
-        </div>
+    <DashboardPageShell
+      title="My Projects"
+      description="Manage all your projects"
+      action={
         <Link
           href="/dashboard/projects/new"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-[#0070f3] to-[#7928ca] text-white px-5 py-2.5 rounded-full hover:shadow-lg hover:shadow-[#0070f3]/25 transition-all duration-200 font-medium text-sm"
+          className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-[#0070f3] to-[#7928ca] px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:shadow-lg hover:shadow-[#0070f3]/25"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
           Create New Project
         </Link>
-      </div>
+      }
+    >
 
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -87,7 +86,7 @@ export default function ProjectsPage() {
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-lg flex items-center justify-center shrink-0">
                   <FolderGit2 className="w-6 h-6 text-[#0070f3]" />
                 </div>
                 <div className="flex-1">
@@ -153,7 +152,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center items-center gap-2">
+      <div className="flex items-center justify-center gap-2">
         {[1, 2, 3].map((page) => (
           <button
             key={page}
@@ -167,6 +166,6 @@ export default function ProjectsPage() {
           </button>
         ))}
       </div>
-    </div>
+    </DashboardPageShell>
   );
 }

@@ -58,6 +58,7 @@ export default function DashboardLayout({
                 <Link
                   key={item.id}
                   href={item.href}
+                  prefetch={false}
                   onClick={() => setSidebarOpen(false)}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all ${
                     isActive(item.href)
@@ -79,6 +80,7 @@ export default function DashboardLayout({
           <div className="mt-8 pt-6 border-t border-gray-200 space-y-1">
             <Link
               href="/developer/sarahj"
+              prefetch={false}
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-gray-600 hover:text-black hover:bg-gray-50"
             >
               <ExternalLink size={20} />
