@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Camera, Plus, Link as LinkIcon, Bell, Shield, Lock, Mail, MapPin, Calendar, Users } from 'lucide-react';
+import { Camera, Plus, Link as LinkIcon, Bell, Shield, Lock, Mail, MapPin, Users } from 'lucide-react';
+import { DashboardPageShell } from '@/components/dashboard/dashboard-page-shell';
+import { AuthGatedSection } from '@/components/dashboard/auth-gated-section';
 
 export default function ProfilePage() {
   const [displayName, setDisplayName] = useState('Sarah Johnson');
@@ -32,20 +34,19 @@ export default function ProfilePage() {
   const commonSkills = ['React', 'TypeScript', 'Next.js', 'Vue', 'Python', 'Node.js', 'Django', 'Go', 'Rust', 'Swift', 'GraphQL', 'MongoDB', 'PostgreSQL'];
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold">My Profile</h2>
-        <p className="text-gray-500 text-sm mt-1">Manage your personal information and preferences</p>
-      </div>
-
-      {/* Profile Settings */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-8">
+    <DashboardPageShell
+      title="My Profile"
+      description="Manage your personal information and preferences"
+    >
+      <AuthGatedSection
+        title="Profile Settings"
+        description="This section is reserved for authenticated users and will be protected later."
+      >
         {/* Avatar */}
         <div className="space-y-4">
           <h3 className="font-semibold text-lg">Avatar</h3>
           <div className="flex items-center gap-6">
-            <div className="w-24 h-24 bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center">
+            <div className="w-24 h-24 bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center">
               <span className="text-4xl">👤</span>
             </div>
             <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
@@ -272,14 +273,13 @@ export default function ProfilePage() {
           <button className="px-6 py-3 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
             Cancel
           </button>
-          <button className="flex-1 px-6 py-3 bg-gradient-to-r from-[#0070f3] to-[#7928ca] text-white rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-[#0070f3]/25 transition-all">
+          <button className="flex-1 px-6 py-3 bg-linear-to-r from-[#0070f3] to-[#7928ca] text-white rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-[#0070f3]/25 transition-all">
             Save Changes
           </button>
         </div>
-      </div>
+      </AuthGatedSection>
 
-      {/* Change Password */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+      <AuthGatedSection title="Change Password" description="Secure password updates for signed-in users.">
         <h3 className="font-semibold text-lg">Change Password</h3>
         
         <div>
@@ -318,7 +318,7 @@ export default function ProfilePage() {
         <button className="px-6 py-3 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
           Update Password
         </button>
-      </div>
-    </div>
+      </AuthGatedSection>
+    </DashboardPageShell>
   );
 }

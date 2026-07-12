@@ -9,31 +9,72 @@ export default function DeveloperProfilePage({ params }: { params: Promise<{ use
   const [isFollowing, setIsFollowing] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const developer = {
-    username: resolvedParams.username,
-    name: 'Sarah Johnson',
-    handle: '@sarahj',
-    role: 'Senior Developer at TechCorp',
-    location: 'San Francisco',
-    joined: 'Dec 2023',
-    projects: 15,
-    followers: 45,
-    stars: 89,
-    skills: ['React', 'TypeScript', 'Node.js', 'Next.js'],
-    github: 'https://github.com/sarahj',
-    linkedin: 'https://linkedin.com/in/sarahj',
-    portfolio: 'https://sarahj.dev',
-    bio: 'Passionate full-stack developer with 5+ years of experience building scalable web applications. Love open source and helping others learn to code.',
-  };
-
-  const projects = [
-    { id: 1, title: 'AI Chat App', languages: ['React', 'TypeScript'], likes: 45 },
-    { id: 2, title: 'DevPortfolio', languages: ['Next.js', 'TypeScript'], likes: 32 },
-    { id: 3, title: 'React Dashboard', languages: ['React', 'Tailwind'], likes: 28 },
-    { id: 4, title: 'Task Manager', languages: ['Vue', 'TypeScript'], likes: 21 },
-    { id: 5, title: 'Social Media App', languages: ['React Native', 'Firebase'], likes: 18 },
-    { id: 6, title: 'EcoTracker', languages: ['Python', 'Django'], likes: 15 },
+  const developerProfiles = [
+    {
+      username: 'sarahjohnson',
+      name: 'Sarah Johnson',
+      handle: '@sarahj',
+      role: 'Senior Developer at TechCorp',
+      location: 'San Francisco',
+      joined: 'Dec 2023',
+      projects: 15,
+      followers: 45,
+      stars: 89,
+      skills: ['React', 'TypeScript', 'Node.js', 'Next.js'],
+      github: 'https://github.com/sarahj',
+      linkedin: 'https://linkedin.com/in/sarahj',
+      portfolio: 'https://sarahj.dev',
+      bio: 'Passionate full-stack developer with 5+ years of experience building scalable web applications. Love open source and helping others learn to code.',
+      projectList: [
+        { id: 1, title: 'AI Chat App', languages: ['React', 'TypeScript'], likes: 45 },
+        { id: 2, title: 'DevPortfolio', languages: ['Next.js', 'TypeScript'], likes: 32 },
+        { id: 3, title: 'React Dashboard', languages: ['React', 'Tailwind'], likes: 28 },
+      ],
+    },
+    {
+      username: 'mikechen',
+      name: 'Mike Chen',
+      handle: '@mikechen',
+      role: 'Frontend Developer at StudioNorth',
+      location: 'Seattle',
+      joined: 'Mar 2022',
+      projects: 10,
+      followers: 28,
+      stars: 54,
+      skills: ['Next.js', 'Node.js', 'Docker'],
+      github: 'https://github.com/mikechen',
+      linkedin: 'https://linkedin.com/in/mikechen',
+      portfolio: 'https://mikechen.dev',
+      bio: 'I enjoy building polished web experiences and helping fellow developers ship useful products faster.',
+      projectList: [
+        { id: 2, title: 'DevPortfolio', languages: ['Next.js', 'TypeScript'], likes: 32 },
+        { id: 4, title: 'Task Manager', languages: ['Vue', 'TypeScript'], likes: 21 },
+      ],
+    },
+    {
+      username: 'emilyrodriguez',
+      name: 'Emily Rodriguez',
+      handle: '@emilyrodriguez',
+      role: 'UI/UX Designer & Developer',
+      location: 'Miami',
+      joined: 'Jun 2024',
+      projects: 8,
+      followers: 19,
+      stars: 41,
+      skills: ['Figma', 'TypeScript', 'React'],
+      github: 'https://github.com/emilyrodriguez',
+      linkedin: 'https://linkedin.com/in/emilyrodriguez',
+      portfolio: 'https://emilyrodriguez.dev',
+      bio: 'Design-first developer focused on thoughtful interfaces and accessible web products.',
+      projectList: [
+        { id: 3, title: 'React Dashboard', languages: ['React', 'Tailwind'], likes: 28 },
+        { id: 5, title: 'Social Media App', languages: ['React Native', 'Firebase'], likes: 18 },
+      ],
+    },
   ];
+
+  const developer = developerProfiles.find((profile) => profile.username === resolvedParams.username) ?? developerProfiles[0];
+  const projects = developer.projectList;
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -79,7 +120,7 @@ export default function DeveloperProfilePage({ params }: { params: Promise<{ use
         <div className="bg-white border border-gray-200 rounded-xl p-8 mb-8">
           <div className="flex flex-col md:flex-row gap-8">
             {/* Avatar */}
-            <div className="w-32 h-32 bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-32 h-32 bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center shrink-0">
               <span className="text-5xl">👤</span>
             </div>
 
@@ -173,7 +214,7 @@ export default function DeveloperProfilePage({ params }: { params: Promise<{ use
                 className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-gray-300 transition-all cursor-pointer"
               >
                 {/* Screenshot */}
-                <div className="aspect-video bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 flex items-center justify-center">
+                <div className="aspect-video bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 flex items-center justify-center">
                   <span className="text-4xl">📸</span>
                 </div>
 
