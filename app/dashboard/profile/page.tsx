@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Camera, Plus, Link as LinkIcon, Bell, Shield, Lock, Mail, MapPin, Users } from 'lucide-react';
-import { DashboardPageShell } from '../../../components/dashboard/dashboard-page-shell';
-import { AuthGatedSection } from '../../../components/dashboard/auth-gated-section';
+import { DashboardPageShell } from '@/components/dashboard/dashboard-page-shell';
+import { AuthGatedSection } from '@/components/dashboard/auth-gated-section';
 
 export default function ProfilePage() {
   const [displayName, setDisplayName] = useState('Sarah Johnson');

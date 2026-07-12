@@ -1,12 +1,70 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Filter, ArrowRight, Star, Database, Table, Users, Search, Code2, Award, Shield, User, Crown } from 'lucide-react';
 import PublicLayout from '../public-layout';
-import { PageHeader } from '../../components/placeholders/page-header';
-import { FilterBar } from '../../components/placeholders/filter-bar';
-import { PageShell } from '../../components/placeholders/page-shell';
-import { DeveloperCard } from '../../components/placeholders/developer-card';
+
+function PageShell({ children }: { children: ReactNode }) {
+  return <div className="min-h-screen bg-gray-50 text-black">{children}</div>;
+}
+
+function PageHeader({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{title}</h1>
+      <p className="mt-2 max-w-2xl text-lg text-gray-600">{description}</p>
+    </div>
+  );
+}
+
+function FilterBar({ searchValue, onSearchChange, searchPlaceholder, filters }: { searchValue: string; onSearchChange: (value: string) => void; searchPlaceholder: string; filters: ReactNode }) {
+  return (
+    <div className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:flex-row md:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            value={searchValue}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder={searchPlaceholder}
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm outline-none ring-0"
+          />
+        </div>
+        <div className="flex flex-wrap gap-3">{filters}</div>
+      </div>
+    </div>
+  );
+}
+
+function DeveloperCard({ name, role, skills, projects, stars, username, isActive }: { name: string; role: string; skills: string[]; projects: number; stars: number; username: string; isActive?: boolean }) {
+  return (
+    <a href={`/developer/${username}`} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
+      <div className="mb-4 flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#0070f3] to-[#7928ca] font-semibold text-white">
+            {name.charAt(0)}
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{name}</h3>
+            <p className="text-sm text-gray-600">{role}</p>
+          </div>
+        </div>
+        {isActive && <span className="text-sm text-green-600">● Active</span>}
+      </div>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {skills.map((skill) => (
+          <span key={skill} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+            {skill}
+          </span>
+        ))}
+      </div>
+      <div className="flex items-center justify-between text-sm text-gray-600">
+        <span>{projects} projects</span>
+        <span>{stars} stars</span>
+      </div>
+    </a>
+  );
+}
 
 export default function DevelopersPage() {
   const [searchQuery, setSearchQuery] = useState('');

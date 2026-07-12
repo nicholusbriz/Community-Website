@@ -1,12 +1,12 @@
 'use client';
 
-import { 
-  ArrowRight, 
-  Sparkles, 
-  Users, 
-  FolderGit2, 
-  MessageCircle, 
-  BarChart3, 
+import {
+  ArrowRight,
+  Sparkles,
+  Users,
+  FolderGit2,
+  MessageCircle,
+  BarChart3,
   Zap,
   CalendarDays,
   Star,
@@ -14,15 +14,100 @@ import {
   MapPin,
   Database,
   Table,
-  Link as LinkIcon
+  type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import PublicLayout from './public-layout';
-import { SectionHeading } from '../components/ui/section-heading';
-import { StatCard } from '../components/ui/stat-card';
-import { FeatureCard } from '../components/ui/feature-card';
-import { ProjectCard } from '../components/placeholders/project-card';
-import { DeveloperCard } from '../components/placeholders/developer-card';
+import type { ReactNode } from 'react';
+
+function SectionHeading({ title, description, align = 'left', action }: { title: string; description: string; align?: 'left' | 'center'; action?: ReactNode }) {
+  return (
+    <div className={align === 'center' ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'}>
+      <h2 className="mb-3 text-3xl font-semibold tracking-tight text-gray-900">{title}</h2>
+      <div className="mb-8 flex items-center justify-between gap-4">
+        <p className="text-lg text-gray-600">{description}</p>
+        {action}
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, icon: Icon }: { label: string; value: string; icon: LucideIcon }) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10">
+        <Icon className="h-6 w-6 text-[#0070f3]" />
+      </div>
+      <p className="text-3xl font-semibold text-gray-900">{value}</p>
+      <p className="mt-2 text-sm text-gray-600">{label}</p>
+    </div>
+  );
+}
+
+function FeatureCard({ title, description, icon: Icon, link }: { title: string; description: string; icon: LucideIcon; link?: string }) {
+  const content = (
+    <>
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10">
+        <Icon className="h-6 w-6 text-[#0070f3]" />
+      </div>
+      <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
+      <p className="text-sm text-gray-600">{description}</p>
+    </>
+  );
+
+  if (link) {
+    return (
+      <Link href={link} className="block rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">{content}</div>;
+}
+
+function ProjectCard({ title, tech, owner, likes, href }: { title: string; tech: string; owner: string; likes: number; href: string }) {
+  return (
+    <Link href={href} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
+      <div className="mb-4 flex items-center justify-between">
+        <span className="rounded-full bg-[#0070f3]/10 px-3 py-1 text-sm font-medium text-[#0070f3]">{tech}</span>
+        <span className="flex items-center gap-1 text-sm text-gray-500">
+          <Star className="h-4 w-4 text-yellow-400" />
+          {likes}
+        </span>
+      </div>
+      <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
+      <p className="text-sm text-gray-600">By {owner}</p>
+    </Link>
+  );
+}
+
+function DeveloperCard({ name, role, skills, projects, stars, username }: { name: string; role: string; skills: string[]; projects: number; stars: number; username: string }) {
+  return (
+    <Link href={`/developer/${username}`} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#0070f3] to-[#7928ca] text-lg font-semibold text-white">
+          {name.charAt(0)}
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-900">{name}</h3>
+          <p className="text-sm text-gray-600">{role}</p>
+        </div>
+      </div>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {skills.slice(0, 3).map((skill) => (
+          <span key={skill} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+            {skill}
+          </span>
+        ))}
+      </div>
+      <div className="flex items-center justify-between text-sm text-gray-600">
+        <span>{projects} projects</span>
+        <span>{stars} stars</span>
+      </div>
+    </Link>
+  );
+}
 
 export default function Home() {
   // Mock data with clear source annotations
@@ -46,8 +131,8 @@ export default function Home() {
   ];
 
   const recentActivity = [
-    { action: 'Sarah created "AI Chat App"', time: '2 hours ago', link: '/project/1', type: 'project' },
-    { action: 'Mike commented on "DevPortfolio"', time: '5 hours ago', link: '/project/2', type: 'comment' },
+    { action: 'Sarah created &quot;AI Chat App&quot;', time: '2 hours ago', link: '/project/1', type: 'project' },
+    { action: 'Mike commented on &quot;DevPortfolio&quot;', time: '5 hours ago', link: '/project/2', type: 'comment' },
     { action: 'Emily joined the community', time: '1 day ago', link: '/developer/emilyrodriguez', type: 'join' },
   ];
 
@@ -251,7 +336,7 @@ export default function Home() {
             />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {topDevelopers.map((dev) => (
-                <DeveloperCard key={dev.id} id={dev.id} name={dev.name} role={dev.role} projects={dev.projectCount} href={`/developer/${dev.username}`} />
+                <DeveloperCard key={dev.id} name={dev.name} role={dev.role} skills={['React', 'Next.js']} projects={dev.projectCount} stars={dev.projectCount + 3} username={dev.username} />
               ))}
             </div>
           </div>

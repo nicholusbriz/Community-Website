@@ -1,6 +1,5 @@
 import { Code2, Smartphone, BrainCircuit, ShieldCheck, Palette, BarChart3, Database, Table, Calendar, Users, BookOpen } from 'lucide-react';
 import PublicLayout from '../public-layout';
-import { PlaceholderPage } from '../../components/placeholders/placeholder-page';
 
 export default function ProgramsPage() {
   // ============================================================

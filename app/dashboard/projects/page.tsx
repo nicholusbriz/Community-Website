@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Plus, FolderGit2, Heart, MessageCircle, Edit, Trash2, Share2, BarChart3, Search, Filter } from 'lucide-react';
 import Link from 'next/link';
-import { DashboardPageShell } from '../../../components/dashboard/dashboard-page-shell';
+import { DashboardPageShell } from '@/components/dashboard/dashboard-page-shell';
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');

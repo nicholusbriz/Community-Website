@@ -1,10 +1,13 @@
 'use client';
 
 import { ArrowLeft, Heart, MessageCircle, Share2, Flag, Copy, Check, User, Calendar, Eye, ExternalLink, Link as LinkIcon } from 'lucide-react';
-import { useState, use } from 'react';
+import { useState, use, type ReactNode } from 'react';
 import Link from 'next/link';
 import PublicLayout from '../../public-layout';
-import { PageShell } from '../../../components/placeholders/page-shell';
+
+function PageShell({ children }: { children: ReactNode }) {
+  return <div className="min-h-screen bg-gray-50 text-black">{children}</div>;
+}
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);

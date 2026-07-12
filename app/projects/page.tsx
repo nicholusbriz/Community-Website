@@ -1,12 +1,53 @@
 'use client';
 
-import { useState } from 'react';
-import { Filter, Heart, MessageCircle, ArrowRight } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { Filter, Heart, MessageCircle, ArrowRight, Star } from 'lucide-react';
 import PublicLayout from '../public-layout';
-import { PageHeader } from '../../components/placeholders/page-header';
-import { FilterBar } from '../../components/placeholders/filter-bar';
-import { PageShell } from '../../components/placeholders/page-shell';
-import { ProjectCard } from '../../components/placeholders/project-card';
+
+function PageShell({ children }: { children: ReactNode }) {
+  return <div className="min-h-screen bg-gray-50 text-black">{children}</div>;
+}
+
+function PageHeader({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{title}</h1>
+      <p className="mt-2 max-w-2xl text-lg text-gray-600">{description}</p>
+    </div>
+  );
+}
+
+function FilterBar({ searchValue, onSearchChange, searchPlaceholder, filters }: { searchValue: string; onSearchChange: (value: string) => void; searchPlaceholder: string; filters: ReactNode }) {
+  return (
+    <div className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:flex-row md:items-center">
+        <input
+          value={searchValue}
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder={searchPlaceholder}
+          className="w-full rounded-lg border border-gray-200 bg-gray-50 py-3 px-4 text-sm outline-none"
+        />
+        <div className="flex flex-wrap gap-3">{filters}</div>
+      </div>
+    </div>
+  );
+}
+
+function ProjectCard({ title, tech, owner, likes, href }: { title: string; tech: string; owner: string; likes: number; href: string }) {
+  return (
+    <a href={href} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
+      <div className="mb-4 flex items-center justify-between">
+        <span className="rounded-full bg-[#0070f3]/10 px-3 py-1 text-sm font-medium text-[#0070f3]">{tech}</span>
+        <span className="flex items-center gap-1 text-sm text-gray-500">
+          <Star className="h-4 w-4 text-yellow-400" />
+          {likes}
+        </span>
+      </div>
+      <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
+      <p className="text-sm text-gray-600">By {owner}</p>
+    </a>
+  );
+}
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -83,7 +124,7 @@ export default function ProjectsPage() {
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <ProjectCard key={project.id} id={project.id} title={project.title} tech={project.languages[0]} owner={project.owner} likes={project.likes} href={project.href} />
+              <ProjectCard key={project.id} title={project.title} tech={project.languages[0]} owner={project.owner} likes={project.likes} href={project.href} />
             ))}
           </div>
 

@@ -1,26 +1,26 @@
+import type { ReactNode } from 'react';
+
 type DashboardPageShellProps = {
   title: string;
-  description?: string;
-  children: React.ReactNode;
-  action?: React.ReactNode;
+  description: string;
+  action?: ReactNode;
+  children: ReactNode;
 };
 
-export function DashboardPageShell({
-  title,
-  description,
-  children,
-  action,
-}: DashboardPageShellProps) {
+export function DashboardPageShell({ title, description, action, children }: DashboardPageShellProps) {
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-          {description ? <p className="mt-1 text-sm text-gray-500">{description}</p> : null}
+    <div className="min-h-screen bg-gray-50 text-black">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{title}</h1>
+            <p className="mt-2 text-lg text-gray-600">{description}</p>
+          </div>
+          {action}
         </div>
-        {action ? <div className="shrink-0">{action}</div> : null}
+
+        <div className="space-y-6">{children}</div>
       </div>
-      {children}
     </div>
   );
 }
