@@ -34,10 +34,12 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      allowDangerousEmailAccountLinking: true,
     }),
     GitHubProvider({
       clientId: process.env.GITHUB_CLIENT_ID || "",
       clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "credentials",
@@ -137,7 +139,6 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name
         token.image = user.image
       }
-      // Handle session updates from update() function
       if (trigger === 'update' && session) {
         token.name = session.user?.name
         token.email = session.user?.email
@@ -155,6 +156,56 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
+    async signIn({ user, account, profile }) {
+      // ✅ Handle OAuth sign in - ensure email exists
+      if (account?.provider === 'google' || account?.provider === 'github') {
+        // ✅ Check if email exists
+        if (!user.email) {
+          console.error('❌ No email provided by OAuth provider')
+          return false
+        }
+
+        // Check if user exists by email
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email }
+        })
+
+        // If user exists, link the OAuth account
+        if (existingUser) {
+          return true
+        }
+
+        // If user doesn't exist, create a new user with OAuth data
+        const userRole = await prisma.role.findUnique({
+          where: { name: 'USER' }
+        })
+
+        if (!userRole) {
+          console.error('❌ USER role not found in database')
+          return false
+        }
+
+        try {
+          // ✅ Create user with OAuth data - ensure email is a string
+          const newUser = await prisma.user.create({
+            data: {
+              email: user.email, // ✅ Now guaranteed to be a string
+              name: user.name || profile?.name || null,
+              image: user.image || null,
+              roleId: userRole.id,
+            }
+          })
+
+          // Update user.id to the new user's id
+          user.id = newUser.id
+        } catch (error) {
+          console.error('❌ Error creating user from OAuth:', error)
+          return false
+        }
+      }
+
+      return true
+    }
   },
   pages: {
     signIn: "/join",
