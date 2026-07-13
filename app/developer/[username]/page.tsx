@@ -1,8 +1,9 @@
 'use client';
 
-import { ArrowLeft, Heart, MessageCircle, Share2, MapPin, Calendar, Users, Star, ExternalLink, Link, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Share2, MapPin, Calendar, Users, Star, ExternalLink, Link as LinkIcon, Copy, Check } from 'lucide-react';
 import { useState, use } from 'react';
-import PublicLayout from '../../public-layout';
+import Link from 'next/link';
+// ❌ REMOVE: import PublicLayout from '../../public-layout';
 
 export default function DeveloperProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const resolvedParams = use(params);
@@ -83,16 +84,16 @@ export default function DeveloperProfilePage({ params }: { params: Promise<{ use
   };
 
   return (
-    <PublicLayout>
-      <div className="min-h-screen bg-white">
-      {/* Header */}
+    // ❌ REMOVE: <PublicLayout>
+    <div className="min-h-screen bg-white">
+      {/* Sticky Header */}
       <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <a href="/developers" className="inline-flex items-center gap-2 text-gray-600 hover:text-black transition-colors">
+            <Link href="/developers" className="inline-flex items-center gap-2 text-gray-600 hover:text-black transition-colors">
               <ArrowLeft className="w-4 h-4" />
               Back to Developers
-            </a>
+            </Link>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsFollowing(!isFollowing)}
@@ -115,12 +116,13 @@ export default function DeveloperProfilePage({ params }: { params: Promise<{ use
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header */}
-        <div className="bg-white border border-gray-200 rounded-xl p-8 mb-8">
+        <div className="bg-white border border-gray-200 rounded-xl p-8 mb-8 hover:shadow-lg transition-shadow">
           <div className="flex flex-col md:flex-row gap-8">
             {/* Avatar */}
-            <div className="w-32 h-32 bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center shrink-0">
+            <div className="w-32 h-32 bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center shrink-0">
               <span className="text-5xl">👤</span>
             </div>
 
@@ -164,24 +166,24 @@ export default function DeveloperProfilePage({ params }: { params: Promise<{ use
               </div>
 
               {/* Social Links */}
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2">
-                  <Link className="w-5 h-5 text-gray-600" />
+                  <LinkIcon className="w-5 h-5 text-gray-600" />
                   <button
                     onClick={() => copyToClipboard(developer.github)}
                     className="text-sm text-gray-600 hover:text-[#0070f3] transition-colors flex items-center gap-1"
                   >
-                    {copied ? 'Copied!' : developer.github}
+                    {copied ? 'Copied!' : developer.github.replace('https://', '')}
                     {copied && <Check className="w-4 h-4 text-green-500" />}
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Link className="w-5 h-5 text-gray-600" />
+                  <LinkIcon className="w-5 h-5 text-gray-600" />
                   <button
                     onClick={() => copyToClipboard(developer.linkedin)}
                     className="text-sm text-gray-600 hover:text-[#0070f3] transition-colors flex items-center gap-1"
                   >
-                    {copied ? 'Copied!' : developer.linkedin}
+                    {copied ? 'Copied!' : developer.linkedin.replace('https://', '')}
                     {copied && <Check className="w-4 h-4 text-green-500" />}
                   </button>
                 </div>
@@ -191,7 +193,7 @@ export default function DeveloperProfilePage({ params }: { params: Promise<{ use
                     onClick={() => copyToClipboard(developer.portfolio)}
                     className="text-sm text-gray-600 hover:text-[#0070f3] transition-colors flex items-center gap-1"
                   >
-                    {copied ? 'Copied!' : developer.portfolio}
+                    {copied ? 'Copied!' : developer.portfolio.replace('https://', '')}
                     {copied && <Check className="w-4 h-4 text-green-500" />}
                   </button>
                 </div>
@@ -208,13 +210,13 @@ export default function DeveloperProfilePage({ params }: { params: Promise<{ use
           <h2 className="text-2xl font-bold mb-6">All Projects by {developer.name}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {projects.map((project) => (
-              <a
+              <Link
                 key={project.id}
                 href={`/project/${project.id}`}
-                className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-gray-300 transition-all cursor-pointer"
+                className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-gray-300 transition-all block"
               >
                 {/* Screenshot */}
-                <div className="aspect-video bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 flex items-center justify-center">
+                <div className="aspect-video bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 flex items-center justify-center">
                   <span className="text-4xl">📸</span>
                 </div>
 
@@ -247,7 +249,7 @@ export default function DeveloperProfilePage({ params }: { params: Promise<{ use
                     View
                   </button>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -259,7 +261,7 @@ export default function DeveloperProfilePage({ params }: { params: Promise<{ use
           </div>
         </div>
       </div>
-      </div>
-    </PublicLayout>
+    </div>
+    // ❌ REMOVE: </PublicLayout>
   );
 }

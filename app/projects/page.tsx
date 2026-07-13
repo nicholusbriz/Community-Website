@@ -2,7 +2,8 @@
 
 import { useState, type ReactNode } from 'react';
 import { Filter, Heart, MessageCircle, ArrowRight, Star } from 'lucide-react';
-import PublicLayout from '../public-layout';
+// ❌ REMOVE: import PublicLayout from '../public-layout';
+import Link from 'next/link';
 
 function PageShell({ children }: { children: ReactNode }) {
   return <div className="min-h-screen bg-gray-50 text-black">{children}</div>;
@@ -21,12 +22,14 @@ function FilterBar({ searchValue, onSearchChange, searchPlaceholder, filters }: 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:flex-row md:items-center">
-        <input
-          value={searchValue}
-          onChange={(event) => onSearchChange(event.target.value)}
-          placeholder={searchPlaceholder}
-          className="w-full rounded-lg border border-gray-200 bg-gray-50 py-3 px-4 text-sm outline-none"
-        />
+        <div className="relative flex-1">
+          <input
+            value={searchValue}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder={searchPlaceholder}
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-3 px-4 text-sm outline-none focus:border-[#0070f3] focus:ring-2 focus:ring-[#0070f3]/20"
+          />
+        </div>
         <div className="flex flex-wrap gap-3">{filters}</div>
       </div>
     </div>
@@ -35,7 +38,7 @@ function FilterBar({ searchValue, onSearchChange, searchPlaceholder, filters }: 
 
 function ProjectCard({ title, tech, owner, likes, href }: { title: string; tech: string; owner: string; likes: number; href: string }) {
   return (
-    <a href={href} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
+    <Link href={href} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl block">
       <div className="mb-4 flex items-center justify-between">
         <span className="rounded-full bg-[#0070f3]/10 px-3 py-1 text-sm font-medium text-[#0070f3]">{tech}</span>
         <span className="flex items-center gap-1 text-sm text-gray-500">
@@ -45,7 +48,7 @@ function ProjectCard({ title, tech, owner, likes, href }: { title: string; tech:
       </div>
       <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
       <p className="text-sm text-gray-600">By {owner}</p>
-    </a>
+    </Link>
   );
 }
 
@@ -69,85 +72,86 @@ export default function ProjectsPage() {
   const sortOptions = ['Newest', 'Most Liked', 'Most Comments', 'Oldest'];
 
   return (
-    <PublicLayout>
-      <PageShell>
-        <PageHeader title="All Projects" description="Browse and discover amazing projects from our community" />
+    // ❌ REMOVE: <PublicLayout>
+    <PageShell>
+      <PageHeader title="All Projects" description="Browse and discover amazing projects from our community" />
 
-        <FilterBar
-          searchValue={searchQuery}
-          onSearchChange={setSearchQuery}
-          searchPlaceholder="Search projects..."
-          filters={
-            <>
-              <div className="relative">
-                <select
-                  value={selectedLanguage}
-                  onChange={(event) => setSelectedLanguage(event.target.value)}
-                  className="appearance-none rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10 focus:border-[#0070f3] focus:outline-none focus:ring-2 focus:ring-[#0070f3]/20"
-                >
-                  {languages.map((lang) => (
-                    <option key={lang} value={lang}>{lang}</option>
-                  ))}
-                </select>
-                <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              </div>
-
-              <div className="relative">
-                <select
-                  value={selectedTag}
-                  onChange={(event) => setSelectedTag(event.target.value)}
-                  className="appearance-none rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10 focus:border-[#0070f3] focus:outline-none focus:ring-2 focus:ring-[#0070f3]/20"
-                >
-                  {tags.map((tag) => (
-                    <option key={tag} value={tag}>{tag}</option>
-                  ))}
-                </select>
-                <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              </div>
-
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(event) => setSortBy(event.target.value)}
-                  className="appearance-none rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10 focus:border-[#0070f3] focus:outline-none focus:ring-2 focus:ring-[#0070f3]/20"
-                >
-                  {sortOptions.map((option) => (
-                    <option key={option} value={option}>Sort: {option}</option>
-                  ))}
-                </select>
-                <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              </div>
-            </>
-          }
-        />
-
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => (
-              <ProjectCard key={project.id} title={project.title} tech={project.languages[0]} owner={project.owner} likes={project.likes} href={project.href} />
-            ))}
-          </div>
-
-          <div className="mt-12 flex items-center justify-center gap-2">
-            {[1, 2, 3, 4, 5].map((page) => (
-              <button
-                key={page}
-                className={`h-10 w-10 rounded-lg font-medium transition-colors ${
-                  page === 1
-                    ? 'bg-[#0070f3] text-white'
-                    : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+      <FilterBar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search projects..."
+        filters={
+          <>
+            <div className="relative">
+              <select
+                value={selectedLanguage}
+                onChange={(event) => setSelectedLanguage(event.target.value)}
+                className="appearance-none rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10 focus:border-[#0070f3] focus:outline-none focus:ring-2 focus:ring-[#0070f3]/20"
               >
-                {page}
-              </button>
-            ))}
-            <button className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-gray-600 transition-colors hover:bg-gray-50">
-              Next
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
+                {languages.map((lang) => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+              </select>
+              <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            </div>
+
+            <div className="relative">
+              <select
+                value={selectedTag}
+                onChange={(event) => setSelectedTag(event.target.value)}
+                className="appearance-none rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10 focus:border-[#0070f3] focus:outline-none focus:ring-2 focus:ring-[#0070f3]/20"
+              >
+                {tags.map((tag) => (
+                  <option key={tag} value={tag}>{tag}</option>
+                ))}
+              </select>
+              <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            </div>
+
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value)}
+                className="appearance-none rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10 focus:border-[#0070f3] focus:outline-none focus:ring-2 focus:ring-[#0070f3]/20"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option} value={option}>Sort: {option}</option>
+                ))}
+              </select>
+              <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            </div>
+          </>
+        }
+      />
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {projects.map((project) => (
+            <ProjectCard key={project.id} title={project.title} tech={project.languages[0]} owner={project.owner} likes={project.likes} href={project.href} />
+          ))}
         </div>
-      </PageShell>
-    </PublicLayout>
+
+        {/* Pagination */}
+        <div className="mt-12 flex items-center justify-center gap-2">
+          {[1, 2, 3, 4, 5].map((page) => (
+            <button
+              key={page}
+              className={`h-10 w-10 rounded-lg font-medium transition-colors ${
+                page === 1
+                  ? 'bg-[#0070f3] text-white'
+                  : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+          <button className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-gray-600 transition-colors hover:bg-gray-50">
+            Next
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </PageShell>
+    // ❌ REMOVE: </PublicLayout>
   );
 }
