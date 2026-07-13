@@ -3,7 +3,7 @@
 import { ArrowLeft, Heart, MessageCircle, Share2, Flag, Copy, Check, User, Calendar, Eye, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { useState, use, type ReactNode } from 'react';
 import Link from 'next/link';
-import PublicLayout from '../../public-layout';
+// ❌ REMOVE: import PublicLayout from '../../public-layout';
 
 function PageShell({ children }: { children: ReactNode }) {
   return <div className="min-h-screen bg-gray-50 text-black">{children}</div>;
@@ -94,15 +94,16 @@ Key features include:
   };
 
   return (
-    <PublicLayout>
-      <PageShell>
+    // ❌ REMOVE: <PublicLayout>
+    <PageShell>
+      {/* Sticky Header */}
       <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <a href="/projects" className="inline-flex items-center gap-2 text-gray-600 hover:text-black transition-colors">
+            <Link href="/projects" className="inline-flex items-center gap-2 text-gray-600 hover:text-black transition-colors">
               <ArrowLeft className="w-4 h-4" />
               Back to Projects
-            </a>
+            </Link>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsSaved(!isSaved)}
@@ -126,6 +127,7 @@ Key features include:
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -133,7 +135,7 @@ Key features include:
             {/* Project Header */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               {/* Main Screenshot */}
-              <div className="aspect-video bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 flex items-center justify-center">
+              <div className="aspect-video bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 flex items-center justify-center">
                 <span className="text-6xl">📸</span>
               </div>
 
@@ -205,7 +207,7 @@ Key features include:
                 <h3 className="font-semibold mb-3">Screenshots Gallery</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {project.screenshots.map((screenshot, index) => (
-                    <div key={index} className="aspect-video bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-lg flex items-center justify-center">
+                    <div key={index} className="aspect-video bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-lg flex items-center justify-center">
                       <span className="text-2xl">{screenshot}</span>
                     </div>
                   ))}
@@ -310,7 +312,7 @@ Key features include:
             <div className="bg-white border border-gray-200 rounded-xl p-6">
               <h3 className="font-semibold mb-4">Project Owner</h3>
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-full flex items-center justify-center">
                   <span className="text-2xl">👤</span>
                 </div>
                 <div>
@@ -350,12 +352,12 @@ Key features include:
               <h3 className="font-semibold mb-4">More Projects from {project.owner}</h3>
               <div className="grid grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <a key={i} href={`/project/${i}`} className="group">
-                    <div className="aspect-video bg-linear-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-lg mb-2 flex items-center justify-center">
+                  <Link key={i} href={`/project/${i}`} className="group">
+                    <div className="aspect-video bg-gradient-to-br from-[#0070f3]/10 to-[#7928ca]/10 rounded-lg mb-2 flex items-center justify-center">
                       <span className="text-xl">📸</span>
                     </div>
                     <p className="text-sm font-medium group-hover:text-[#0070f3] transition-colors">Project {i}</p>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -363,6 +365,6 @@ Key features include:
         </div>
       </div>
     </PageShell>
-    </PublicLayout>
+    // ❌ REMOVE: </PublicLayout>
   );
 }
