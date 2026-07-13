@@ -1,10 +1,77 @@
 // proxy.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { serverAuthMiddleware } from './middleware/auth/server'
-import { publicRoutes, authRoutes, apiAuthRoutes } from './middleware/routes/public'
-import { protectedRoutes } from './middleware/routes/protected'
-import { adminRoutes, superAdminRoutes } from './middleware/routes/admin'
+import { getToken } from 'next-auth/jwt'
+
+// ============================================================
+// 📋 ROUTE CONFIGURATION - All routes in one place
+// ============================================================
+
+// Public routes (no authentication required)
+const publicRoutes = [
+  '/',
+  '/about',
+  '/contact',
+  '/faq',
+  '/projects',
+  '/project/:path*',
+  '/developers',
+  '/developer/:path*',
+  '/events',
+  '/blog',
+  '/resources',
+  '/programs',
+  '/gallery',
+  '/testimonials',
+  '/mentors',
+  '/community',
+]
+
+// Auth routes (redirect to dashboard if already logged in)
+const authRoutes = [
+  '/join',
+  '/login',
+]
+
+// API auth routes (always public)
+const apiAuthRoutes = [
+  '/api/auth',
+  '/api/auth/:path*',
+]
+
+// Protected routes (require authentication)
+const protectedRoutes = [
+  '/dashboard',
+  '/dashboard/:path*',
+  '/profile',
+  '/profile/:path*',
+  '/settings',
+  '/settings/:path*',
+  '/messages',
+  '/messages/:path*',
+  '/projects/new',
+  '/projects/:path*/edit',
+]
+
+// Admin routes (require ADMIN or SUPERADMIN role)
+const adminRoutes = [
+  '/admin',
+  '/admin/:path*',
+]
+
+// SUPERADMIN only routes
+const superAdminRoutes = [
+  '/admin/super',
+  '/admin/super/:path*',
+  '/admin/users',
+  '/admin/users/:path*',
+  '/admin/system',
+  '/admin/system/:path*',
+]
+
+// ============================================================
+// 🔧 HELPER FUNCTIONS
+// ============================================================
 
 // Helper to check if path matches any route pattern
 function matchesRoute(pathname: string, routes: string[]): boolean {
@@ -17,31 +84,35 @@ function matchesRoute(pathname: string, routes: string[]): boolean {
   })
 }
 
+// ============================================================
+// 🚀 MAIN PROXY
+// ============================================================
+
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // 1. Check if it's an auth route (join, login)
+  // Check route types
   const isAuthRoute = matchesRoute(pathname, authRoutes)
-
-  // 2. Check if it's a public route
   const isPublicRoute = matchesRoute(pathname, publicRoutes)
-
-  // 3. Check if it's a protected route
   const isProtectedRoute = matchesRoute(pathname, protectedRoutes)
-
-  // 4. Check if it's an admin route
   const isAdminRoute = matchesRoute(pathname, adminRoutes)
-
-  // 5. Check if it's a SUPERADMIN only route
   const isSuperAdminRoute = matchesRoute(pathname, superAdminRoutes)
-
-  // 6. Check if it's an API auth route (always public)
   const isApiAuthRoute = matchesRoute(pathname, apiAuthRoutes)
 
-  // Get server-side auth data
-  const { token, isAuthenticated, user, hasRole, isAdmin, isSuperAdmin } = await serverAuthMiddleware(request)
+  // Get authentication data
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  })
 
-  // 🔐 Public routes - allow access
+  const isAuthenticated = !!token
+  const userRole = token?.role as string || 'USER'
+
+  // ============================================================
+  // 🔐 ROUTE AUTHORIZATION LOGIC
+  // ============================================================
+
+  // 1. Public routes - allow access
   if (isPublicRoute || isApiAuthRoute) {
     // Redirect authenticated users away from auth pages (join, login)
     if (isAuthRoute && isAuthenticated) {
@@ -50,21 +121,17 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 🔒 Protected routes - require authentication
-  // This includes: /dashboard, /profile, /settings, /messages, etc.
+  // 2. Protected routes - require authentication
   if (isProtectedRoute) {
-    // If not authenticated, redirect to join page
     if (!isAuthenticated) {
       const url = new URL('/join', request.url)
       url.searchParams.set('callbackUrl', pathname)
       return NextResponse.redirect(url)
     }
-
-    // ✅ User is authenticated, allow access
     return NextResponse.next()
   }
 
-  // 👑 SUPERADMIN routes - only SUPERADMIN can access
+  // 3. SUPERADMIN routes - only SUPERADMIN
   if (isSuperAdminRoute) {
     if (!isAuthenticated) {
       const url = new URL('/join', request.url)
@@ -72,18 +139,15 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    if (!isSuperAdmin()) {
-      // Redirect to dashboard with an error message
+    if (userRole !== 'SUPERADMIN') {
       const url = new URL('/dashboard', request.url)
       url.searchParams.set('error', 'Insufficient permissions')
       return NextResponse.redirect(url)
     }
-
-    // ✅ User is SUPERADMIN, allow access
     return NextResponse.next()
   }
 
-  // 🔑 Admin routes - require ADMIN or SUPERADMIN role
+  // 4. Admin routes - ADMIN or SUPERADMIN
   if (isAdminRoute) {
     if (!isAuthenticated) {
       const url = new URL('/join', request.url)
@@ -91,22 +155,22 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    if (!isAdmin()) {
-      // Redirect to dashboard with an error message
+    if (userRole !== 'ADMIN' && userRole !== 'SUPERADMIN') {
       const url = new URL('/dashboard', request.url)
       url.searchParams.set('error', 'Insufficient permissions')
       return NextResponse.redirect(url)
     }
-
-    // ✅ User has admin or superadmin role, allow access
     return NextResponse.next()
   }
 
-  // ✅ Allow the request
+  // 5. Allow the request
   return NextResponse.next()
 }
 
-// Configure which routes the middleware runs on
+// ============================================================
+// ⚙️ PROXY CONFIGURATION
+// ============================================================
+
 export const config = {
   matcher: [
     /*

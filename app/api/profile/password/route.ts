@@ -1,14 +1,12 @@
 // app/api/profile/password/route.ts
 import { NextResponse } from 'next/server'
-import { requireAuth } from '@/app/lib/auth/server'
 import { prisma } from '@/app/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { getAuthUser, handleAuthError } from '@/app/lib/auth/api-utils'
 
-// ✅ PUT - Protected (requires authentication)
 export async function PUT(request: Request) {
   try {
-    const session = await requireAuth()
-    const userId = session.user.id
+    const auth = await getAuthUser(request)
 
     const body = await request.json()
     const { currentPassword, newPassword } = body
@@ -27,9 +25,8 @@ export async function PUT(request: Request) {
       )
     }
 
-    // Get user with current password
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: auth.userId },
     })
 
     if (!user || !user.password) {
@@ -39,7 +36,6 @@ export async function PUT(request: Request) {
       )
     }
 
-    // Verify current password
     const isValid = await bcrypt.compare(currentPassword, user.password)
     if (!isValid) {
       return NextResponse.json(
@@ -48,12 +44,10 @@ export async function PUT(request: Request) {
       )
     }
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10)
 
-    // Update password
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: auth.userId },
       data: { password: hashedPassword },
     })
 
@@ -62,10 +56,17 @@ export async function PUT(request: Request) {
       message: 'Password updated successfully',
     })
   } catch (error) {
-    console.error('Password update error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update password' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'PUT, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  })
 }
