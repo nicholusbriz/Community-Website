@@ -66,6 +66,9 @@ export default function TopBar({
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ✅ Simply use user.image from the session - no real-time logic
+  const avatarUrl = user?.image || null;
+
   // Notification items
   const notifications = [
     { id: 1, title: 'New comment on your project', message: 'Sarah commented on "AI Chat App"', time: '5 min ago', read: false, link: '/dashboard/messages' },
@@ -521,9 +524,9 @@ export default function TopBar({
                 <div className="flex items-center gap-2">
                   <div className="relative">
                     <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
-                      {user?.image ? (
+                      {avatarUrl ? (
                         <Image
-                          src={user.image}
+                          src={avatarUrl}
                           alt={getUserName()}
                           width={32}
                           height={32}
@@ -559,9 +562,9 @@ export default function TopBar({
                       <div className="flex items-center gap-3">
                         <div className="relative">
                           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
-                            {user?.image ? (
+                            {avatarUrl ? (
                               <Image
-                                src={user.image}
+                                src={avatarUrl}
                                 alt={getUserName()}
                                 width={40}
                                 height={40}

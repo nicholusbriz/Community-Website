@@ -61,6 +61,9 @@ export default function DesktopSidebar({
   const pathname = usePathname();
   const { user, status, actions } = useAuth();
   const isAuthenticated = status === 'authenticated';
+  
+  // ✅ Simply use user.image from the session - no real-time logic
+  const avatarUrl = user?.image || null;
 
   const [mainExpanded, setMainExpanded] = useState(true);
   const [exploreExpanded, setExploreExpanded] = useState(true);
@@ -538,9 +541,9 @@ export default function DesktopSidebar({
                   <div className="flex items-center gap-3 mb-3 group cursor-default">
                     <div className="relative">
                       <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
-                        {user?.image ? (
+                        {avatarUrl ? (
                           <Image
-                            src={user.image}
+                            src={avatarUrl}
                             alt={getUserName()}
                             width={40}
                             height={40}

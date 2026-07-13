@@ -59,35 +59,28 @@ export default function PublicLayout({
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  // Mobile menu slide variants - ONLY animation kept
+  // ✅ Simple mobile menu slide - no spring, no bounce
   const mobileMenuVariants: Variants = {
     hidden: {
       x: '-100%',
-      opacity: 0,
     },
     visible: {
       x: 0,
-      opacity: 1,
       transition: {
-        type: 'spring',
-        stiffness: 350,
-        damping: 28,
-        mass: 0.6,
-        duration: 0.35
+        duration: 0.3,
+        ease: 'easeInOut',
       }
     },
     exit: {
       x: '-100%',
-      opacity: 0,
       transition: {
-        type: 'tween',
-        duration: 0.25,
-        ease: [0.4, 0, 0.2, 1]
+        duration: 0.3,
+        ease: 'easeInOut',
       }
     }
   };
 
-  // Backdrop animation - only for mobile menu
+  // ✅ Simple backdrop fade
   const backdropVariants: Variants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -184,7 +177,7 @@ export default function PublicLayout({
         </div>
       </div>
 
-      {/* ONLY Mobile Menu with slide animation */}
+      {/* ONLY Mobile Menu with simple slide animation */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>

@@ -5,7 +5,6 @@ import { useSession, signIn, signOut } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { AuthState, AuthUser } from "./types"
 import { hasRole, hasExactRole, isAdmin, isSuperAdmin, isMeteor, UserRole } from "./roles"
-import { initSocket, getSocket } from "@/lib/socket/client"
 
 // Centralized auth hook that all components will use
 export function useAuth(): AuthState {
@@ -29,22 +28,6 @@ export function useAuth(): AuthState {
         image: session.user.image || null,
       }
       setUser(updatedUser)
-
-      // Initialize Socket.io connection for real-time updates
-      const socket = initSocket(session.user.id)
-
-      // Listen for avatar updates from server
-      socket.on('avatar:updated', (data: { userId: string; imageUrl: string | null }) => {
-        if (data.userId === session.user.id) {
-          // Add timestamp to bust browser cache
-          const imageUrl = data.imageUrl ? `${data.imageUrl}?t=${Date.now()}` : null
-          setUser(prev => prev ? { ...prev, image: imageUrl } : null)
-        }
-      })
-
-      return () => {
-        socket.off('avatar:updated')
-      }
     } else {
       setUser(null)
     }

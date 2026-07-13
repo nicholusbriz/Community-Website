@@ -62,6 +62,9 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
   const pathname = usePathname();
   const { user, status, actions } = useAuth();
   const isAuthenticated = status === 'authenticated';
+  
+  // ✅ Simply use user.image from the session - no real-time logic
+  const avatarUrl = user?.image || null;
 
   // All sections expanded by default
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -184,31 +187,27 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
   };
 
   return (
-    // ✅ The key fix: Use isOpen prop to control the animation
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop - separate from the menu for better animation */}
+          {/* Backdrop - simple fade */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="fixed inset-0 z-[9998] lg:hidden bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
 
-          {/* Slide-in Menu */}
+          {/* Slide-in Menu - simple slide without spring */}
           <motion.div
-            initial={{ x: '-100%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '-100%', opacity: 0 }}
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
             transition={{ 
-              type: 'spring',
-              stiffness: 350,
-              damping: 28,
-              mass: 0.6,
-              duration: 0.35
+              duration: 0.3,
+              ease: "easeInOut" 
             }}
             className="fixed top-0 left-0 h-full w-[92%] max-w-sm z-[9999] lg:hidden bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto"
           >
@@ -563,9 +562,9 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
                     <div className="flex items-center gap-3 mb-3 group cursor-default">
                       <div className="relative">
                         <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
-                          {user?.image ? (
+                          {avatarUrl ? (
                             <Image
-                              src={user.image}
+                              src={avatarUrl}
                               alt={getUserName()}
                               width={40}
                               height={40}

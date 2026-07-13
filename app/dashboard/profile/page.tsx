@@ -66,7 +66,7 @@ export default function ProfilePage() {
 
   const commonSkills = ['React', 'TypeScript', 'Next.js', 'Vue', 'Python', 'Node.js', 'Django', 'Go', 'Rust', 'Swift', 'GraphQL', 'MongoDB', 'PostgreSQL']
 
-  // Load user profile data
+  // Load user profile data - no real-time subscription
   useEffect(() => {
     if (status === 'authenticated' && user) {
       fetchProfile()
@@ -150,11 +150,8 @@ export default function ProfilePage() {
 
       const data = await response.json()
       setImagePreview(data.url)
-
-      // Update profile image
       setProfile(prev => prev ? { ...prev, image: data.url } : null)
-
-      // Socket.io will broadcast the update to all components automatically
+      
       setSuccess('Avatar updated successfully!')
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
@@ -184,8 +181,7 @@ export default function ProfilePage() {
 
       setImagePreview(null)
       setProfile(prev => prev ? { ...prev, image: null } : null)
-
-      // Socket.io will broadcast the update to all components automatically
+      
       setSuccess('Avatar removed successfully!')
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
