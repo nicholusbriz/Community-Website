@@ -1,9 +1,36 @@
+// app/dashboard/page.tsx
 'use client';
 
 import { Sparkles, FolderKanban, Users, MessageSquare, BarChart3, Plus, ArrowRight, Heart, MessageCircle, Calendar, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
+import { redirect } from "next/navigation";
+import { useAuth } from "@/app/lib/auth/useAuth";
 
 export default function DashboardHome() {
+  const { user, status, actions } = useAuth();
+
+  // Redirect to join if not authenticated
+  if (status === "unauthenticated") {
+    redirect("/join");
+  }
+
+  // Show loading state
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+          <p className="mt-2 text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Get user data from centralized auth
+  const userName = user?.name || 'User';
+  const userEmail = user?.email || '';
+  const userRole = user?.role || 'USER';
+
   const quickStats = [
     { label: 'Projects', value: '12', icon: FolderKanban, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Published', value: '10', icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-50' },
@@ -38,14 +65,15 @@ export default function DashboardHome() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Welcome header */}
+      {/* Welcome header with real user name */}
       <div>
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-1">
           <Sparkles className="w-4 h-4" />
-          <span>Welcome back, Sarah! 👋</span>
+          <span>Welcome back, {userName}! 👋</span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-1">Overview of your community activity</p>
+        <p className="text-xs text-gray-400 mt-0.5">{userEmail}</p>
       </div>
 
       {/* Quick Stats */}
@@ -196,6 +224,36 @@ export default function DashboardHome() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          {/* User Info Card */}
+          <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border border-indigo-100 dark:border-indigo-800/30 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-500/20">
+                {userName[0]?.toUpperCase() || 'U'}
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white">{userName}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{userEmail}</p>
+                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium uppercase tracking-wider">
+                  {userRole}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                href="/dashboard/profile"
+                className="flex-1 text-center px-3 py-1.5 text-xs font-medium rounded-lg border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+              >
+                View Profile
+              </Link>
+              <Link
+                href="/dashboard/settings"
+                className="flex-1 text-center px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Settings
+              </Link>
             </div>
           </div>
         </div>

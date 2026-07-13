@@ -1,0 +1,133 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// 🔐 AUTHENTICATION TABLES (Required for NextAuth)
+// ============================================================
+
+// 1. User Table - Stores user accounts
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?   @db.Text  // For credentials provider
+  
+  // ============================================================
+  // 🖼️ AVATAR HANDLING
+  // ============================================================
+  // image: Stores the URL to the user's avatar in Supabase Storage
+  // Default: null (no avatar set)
+  // When set, displays the avatar image
+  // When null, shows default avatar (initials or default icon)
+  image         String?
+  
+  // Role management
+  roleId        String
+  role          Role      @relation(fields: [roleId], references: [id])
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations (required for NextAuth)
+  accounts      Account[]
+  sessions      Session[]
+
+  // ============================================================
+  // 📋 CUSTOM PROFILE FIELDS
+  // ============================================================
+  
+  // Custom username (unique)
+  username      String?   @unique
+  
+  // User bio/description
+  bio           String?   @db.Text
+  
+  // User location
+  location      String?
+  
+  // Skills stored as array of strings
+  skills        String[]  @default([])
+  
+  // Social media links
+  github        String?
+  linkedin      String?
+  portfolio     String?
+  
+  // Account status
+  isActive      Boolean   @default(true)
+  
+  // Last activity timestamp
+  lastActive    DateTime  @default(now())
+
+  @@map("users")
+}
+
+// 2. Account Table - Stores OAuth/OIDC accounts (Google, GitHub, etc.)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// 3. Session Table - Stores user sessions
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// 4. Verification Token Table - For email verification
+model VerificationToken {
+  identifier String
+  token      String @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================================
+// 📋 ROLE MANAGEMENT
+// ============================================================
+
+// Role Table - Dynamic roles with hierarchy
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique  // e.g., "USER", "ADMIN", "SUPERADMIN", "MODERATOR", "METEOR"
+  level       Int      @default(1)  // Hierarchy level (higher = more permissions)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       User[]
+
+  @@map("roles")
+}
