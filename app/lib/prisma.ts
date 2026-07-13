@@ -7,12 +7,29 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
+// ✅ Only create pool if DATABASE_URL exists
+const databaseUrl = process.env.DATABASE_URL
+
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL environment variable is not set')
+}
+
+// ✅ Create pool with optimized settings for serverless
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: databaseUrl,
+  max: 20, // Max connections in pool
+  idleTimeoutMillis: 30_000, // Close idle connections after 30 seconds
+  connectionTimeoutMillis: 5_000, // Timeout for connection attempts
+})
+
+// ✅ Ensure pool is properly closed when the process exits
+process.on('beforeExit', () => {
+  pool.end().catch(console.error)
 })
 
 const adapter = new PrismaPg(pool)
 
+// ✅ Use global singleton for Prisma Client
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
@@ -20,4 +37,13 @@ export const prisma =
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// ✅ In development, store in global to prevent multiple instances
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma
+}
+
+// ✅ For production, ensure connections are properly managed
+export async function disconnectPrisma() {
+  await prisma.$disconnect()
+  await pool.end()
+}

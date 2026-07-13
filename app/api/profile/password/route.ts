@@ -1,80 +1,62 @@
-// app/api/profile/delete-avatar/route.ts
+// app/api/profile/password/route.ts
 import { NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/app/lib/prisma'
-import { createClient } from '@supabase/supabase-js'
+import bcrypt from 'bcryptjs'
+import { getAuthUser, handleAuthError } from '@/app/lib/auth/api-utils'
 
-// Use service role key for server-side operations (bypasses RLS)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-if (!supabaseServiceKey) {
-  console.warn('⚠️ SUPABASE_SERVICE_ROLE_KEY not set. Avatar deletion may fail due to RLS policies.')
-}
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-
-export async function DELETE(request: Request) {
+export async function PUT(request: Request) {
   try {
-    // ✅ Use getToken directly instead of requireAuth
-    const token = await getToken({
-      req: request as any,
-      secret: process.env.NEXTAUTH_SECRET,
-    })
+    const auth = await getAuthUser(request)
 
-    if (!token?.id) {
+    const body = await request.json()
+    const { currentPassword, newPassword } = body
+
+    if (!currentPassword || !newPassword) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const userId = token.id as string
-
-    // Get user
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    })
-
-    if (!user || !user.image) {
-      return NextResponse.json(
-        { error: 'No avatar to delete' },
+        { error: 'Current password and new password are required' },
         { status: 400 }
       )
     }
 
-    // Extract file path from URL
-    const urlParts = user.image.split('/')
-    const fileName = urlParts.slice(urlParts.indexOf('avatars') + 1).join('/')
-
-    // Delete from Supabase Storage
-    if (fileName) {
-      const { error } = await supabase.storage
-        .from('avatars')
-        .remove([fileName])
-
-      if (error) {
-        console.error('Supabase delete error:', error)
-        // Continue anyway, update the user record
-      }
+    if (newPassword.length < 6) {
+      return NextResponse.json(
+        { error: 'New password must be at least 6 characters' },
+        { status: 400 }
+      )
     }
 
-    // Update user to remove avatar URL
+    const user = await prisma.user.findUnique({
+      where: { id: auth.userId },
+    })
+
+    if (!user || !user.password) {
+      return NextResponse.json(
+        { error: 'User not found or account uses OAuth' },
+        { status: 400 }
+      )
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.password)
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Current password is incorrect' },
+        { status: 400 }
+      )
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+
     await prisma.user.update({
-      where: { id: userId },
-      data: { image: null },
+      where: { id: auth.userId },
+      data: { password: hashedPassword },
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Avatar deleted successfully',
+      message: 'Password updated successfully',
     })
   } catch (error) {
-    console.error('Avatar delete error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete avatar' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
 
@@ -83,7 +65,7 @@ export async function OPTIONS() {
     status: 204,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'PUT, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
   })

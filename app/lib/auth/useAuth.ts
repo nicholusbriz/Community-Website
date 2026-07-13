@@ -35,6 +35,11 @@ export function useAuth(): AuthState {
     setIsLoading(false)
   }, [session, status])
 
+  // Helper to get user role for checks
+  const getUserRole = (): UserRole | null => {
+    return user?.role || null
+  }
+
   // Centralized auth actions
   const authActions = {
     signIn,
@@ -100,52 +105,43 @@ export function useAuth(): AuthState {
       }
     },
     
-    // Check if user has required role (uses centralized role hierarchy)
+    // ✅ All role checks use the centralized functions from roles.ts
     hasRole(requiredRole: string): boolean {
       return hasRole(user?.role, requiredRole)
     },
     
-    // Check if user has exact role
     hasExactRole(requiredRole: string): boolean {
       return hasExactRole(user?.role, requiredRole)
     },
     
-    // Check if user is admin or superadmin
     isAdmin(): boolean {
       return isAdmin(user?.role)
     },
     
-    // Check if user is superadmin only
     isSuperAdmin(): boolean {
       return isSuperAdmin(user?.role)
     },
     
-    // Check if user has meteor role or higher
     isMeteor(): boolean {
       return isMeteor(user?.role)
     },
     
-    // Check if user is authenticated
     isAuthenticated(): boolean {
       return !!user
     },
     
-    // Get user's role
     getUserRole(): UserRole | null {
       return user?.role || null
     },
     
-    // Get user's role ID
     getUserRoleId(): string | null {
       return user?.roleId || null
     },
     
-    // Get user's name
     getUserName(): string {
       return user?.name || "User"
     },
     
-    // Get user's initials for avatar
     getUserInitials(): string {
       if (user?.name) {
         return user.name.charAt(0).toUpperCase()
@@ -156,7 +152,6 @@ export function useAuth(): AuthState {
       return "U"
     },
     
-    // Get user's email
     getUserEmail(): string {
       return user?.email || ""
     },
