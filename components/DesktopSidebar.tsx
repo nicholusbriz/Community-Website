@@ -43,6 +43,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useAuth } from '@/app/lib/auth/useAuth';
 
 interface DesktopSidebarProps {
   sidebarOpen: boolean;
@@ -58,7 +59,9 @@ export default function DesktopSidebar({
   setIsDarkMode 
 }: DesktopSidebarProps) {
   const pathname = usePathname();
-  
+  const { user, status, actions } = useAuth();
+  const isAuthenticated = status === 'authenticated';
+
   const [mainExpanded, setMainExpanded] = useState(true);
   const [exploreExpanded, setExploreExpanded] = useState(true);
   const [dashboardExpanded, setDashboardExpanded] = useState(true);
@@ -66,6 +69,10 @@ export default function DesktopSidebar({
   const [resourcesExpanded, setResourcesExpanded] = useState(true);
   const [communityExpanded, setCommunityExpanded] = useState(true);
   const [getInvolvedExpanded, setGetInvolvedExpanded] = useState(true);
+
+  const handleSignOut = async () => {
+    await actions.signOutUser();
+  };
 
   // Main navigation links with icons and descriptions
   const mainLinks = [
@@ -141,9 +148,15 @@ export default function DesktopSidebar({
     { label: 'Projects', value: '456', icon: FolderGit2, color: 'text-purple-500' },
   ];
 
-  const quickLinks = [
-    { icon: Users, label: 'Join', href: '/join', color: 'from-indigo-500 to-purple-500' },
-    { icon: Calendar, label: 'Events', href: '/events', color: 'from-blue-500 to-cyan-500' },
+  // Quick links - show different links based on auth status
+  const quickLinks = isAuthenticated ? [
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', color: 'from-blue-500 to-indigo-500' },
+    { icon: Calendar, label: 'Events', href: '/events', color: 'from-cyan-500 to-blue-500' },
+    { icon: GraduationCap, label: 'Mentors', href: '/mentors', color: 'from-emerald-500 to-teal-500' },
+    { icon: FolderGit2, label: 'Projects', href: '/projects', color: 'from-purple-500 to-pink-500' },
+  ] : [
+    { icon: Users, label: 'Login', href: '/login', color: 'from-blue-500 to-indigo-500' },
+    { icon: Calendar, label: 'Events', href: '/events', color: 'from-cyan-500 to-blue-500' },
     { icon: GraduationCap, label: 'Mentors', href: '/mentors', color: 'from-emerald-500 to-teal-500' },
     { icon: FolderGit2, label: 'Projects', href: '/projects', color: 'from-purple-500 to-pink-500' },
   ];
@@ -151,6 +164,24 @@ export default function DesktopSidebar({
   const sectionVariants = {
     open: { opacity: 1, height: 'auto' },
     closed: { opacity: 0, height: 0 },
+  };
+
+  // Get user initials for avatar from centralized auth
+  const getUserInitials = () => {
+    if (user?.name) {
+      return user.name.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
+
+  // Get user display name from centralized auth
+  const getUserName = () => {
+    if (user?.name) return user.name;
+    if (user?.email) return user.email.split('@')[0];
+    return 'User';
   };
 
   return (
@@ -172,7 +203,7 @@ export default function DesktopSidebar({
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-600">
             {/* Logo/Brand with animation */}
             <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-200 dark:border-gray-800 group">
-              <div className="relative w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-300">
+              <div className="relative w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
                 <Image
                   src="/community-website-logo.png"
                   alt="Community Ecosystem Logo"
@@ -182,31 +213,33 @@ export default function DesktopSidebar({
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-base font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">Community</span>
+                <span className="text-base font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Community</span>
                 <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium tracking-wider uppercase">Ecosystem</span>
               </div>
             </div>
 
-            {/* Hero Section with gradient */}
-            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border border-indigo-100 dark:border-indigo-800/30 hover:shadow-md transition-shadow duration-300">
-                <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-gray-800 px-2.5 py-0.5 text-[10px] font-medium text-gray-700 dark:text-gray-300 shadow-sm">
-                  <Users className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
-                  Join the movement
+            {/* Hero Section - Hide when authenticated */}
+            {!isAuthenticated && (
+              <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-shadow duration-300">
+                  <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-gray-800 px-2.5 py-0.5 text-[10px] font-medium text-gray-700 dark:text-gray-300 shadow-sm">
+                    <Users className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    Join the movement
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5">Become part of Tech Rise Africa</h3>
+                  <p className="text-[11px] text-gray-600 dark:text-gray-400 leading-relaxed">
+                    Join an active community of learners, builders, mentors, and volunteers.
+                  </p>
+                  <Link
+                    href="/join"
+                    className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1 text-[11px] font-semibold text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95"
+                  >
+                    Join Now
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
                 </div>
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5">Become part of Tech Rise Africa</h3>
-                <p className="text-[11px] text-gray-600 dark:text-gray-400 leading-relaxed">
-                  Join an active community of learners, builders, mentors, and volunteers.
-                </p>
-                <Link
-                  href="/join"
-                  className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-3 py-1 text-[11px] font-semibold text-white transition-all hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-105 active:scale-95"
-                >
-                  Join Now
-                  <ArrowRight className="h-3 w-3" />
-                </Link>
               </div>
-            </div>
+            )}
 
             {/* Stats Section with hover effects */}
             <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800">
@@ -216,7 +249,7 @@ export default function DesktopSidebar({
                   return (
                     <div 
                       key={stat.label} 
-                      className="group rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-2 text-center hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all duration-300 cursor-default"
+                      className="group rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-2 text-center hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all duration-300 cursor-default"
                     >
                       <div className="flex items-center justify-center gap-1">
                         <Icon className={`h-3 w-3 ${stat.color}`} />
@@ -289,13 +322,13 @@ export default function DesktopSidebar({
                               href={link.href}
                               className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200 ${
                                 active
-                                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-600 dark:text-indigo-400 font-medium shadow-sm'
+                                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400 font-medium shadow-sm border border-blue-200 dark:border-blue-800/30'
                                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-sm'
                               }`}
                             >
                               <div className={`p-1.5 rounded-lg transition-all duration-200 ${
                                 active 
-                                  ? 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md' 
+                                  ? 'bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md' 
                                   : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
                               }`}>
                                 <Icon className="h-4 w-4" />
@@ -307,7 +340,7 @@ export default function DesktopSidebar({
                                 </p>
                               </div>
                               {active && (
-                                <span className="w-1.5 h-8 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></span>
+                                <span className="w-1.5 h-8 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
                               )}
                             </Link>
                           );
@@ -354,13 +387,13 @@ export default function DesktopSidebar({
                                 onClick={() => group.setExpanded(!group.expanded)}
                                 className={`group w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 ${
                                   active
-                                    ? 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-600 dark:text-indigo-400 font-medium'
+                                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400 font-medium border border-blue-200 dark:border-blue-800/30'
                                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                                 }`}
                               >
                                 <div className={`p-1 rounded-lg transition-all duration-200 ${
                                   active 
-                                    ? 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md' 
+                                    ? 'bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md' 
                                     : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
                                 }`}>
                                   <Icon className="h-4 w-4" />
@@ -388,7 +421,7 @@ export default function DesktopSidebar({
                                         href={link.href}
                                         className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 ${
                                           active
-                                            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-600 dark:text-indigo-400 font-medium'
+                                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400 font-medium border border-blue-200 dark:border-blue-800/30'
                                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white'
                                         }`}
                                       >
@@ -400,12 +433,12 @@ export default function DesktopSidebar({
                                           </p>
                                         </div>
                                         {link.badge && (
-                                          <span className="text-[8px] font-medium bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-1.5 py-0.5 rounded-full">
+                                          <span className="text-[8px] font-medium bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-1.5 py-0.5 rounded-full">
                                             {link.badge}
                                           </span>
                                         )}
                                         {active && (
-                                          <span className="w-1 h-5 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></span>
+                                          <span className="w-1 h-5 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
                                         )}
                                       </Link>
                                     );
@@ -421,139 +454,214 @@ export default function DesktopSidebar({
                 </AnimatePresence>
               </div>
 
-              {/* DASHBOARD SECTION */}
-              <div className="mb-2">
-                <button
-                  onClick={() => setDashboardExpanded(!dashboardExpanded)}
-                  className="group flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
-                >
-                  <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
-                    Dashboard
-                  </span>
-                  {dashboardExpanded ? (
-                    <ChevronUp className="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
-                  )}
-                </button>
-                <AnimatePresence initial={false}>
-                  {dashboardExpanded && (
-                    <motion.div
-                      initial="closed"
-                      animate="open"
-                      exit="closed"
-                      variants={sectionVariants}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="space-y-0.5 mt-1">
-                        {dashboardLinks.map((link) => {
-                          const Icon = link.icon;
-                          const active = isActive(link.href);
-                          return (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200 ${
-                                active
-                                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-600 dark:text-indigo-400 font-medium shadow-sm'
-                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-sm'
-                              }`}
-                            >
-                              <div className={`p-1.5 rounded-lg transition-all duration-200 ${
-                                active 
-                                  ? 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md' 
-                                  : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
-                              }`}>
-                                <Icon className="h-4 w-4" />
-                              </div>
-                              <div className="flex-1">
-                                <span className="font-medium">{link.label}</span>
-                                <p className="text-[10px] text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400 transition-colors">
-                                  {link.description}
-                                </p>
-                              </div>
-                              {link.badge && (
-                                <span className={`text-[8px] font-medium px-1.5 py-0.5 rounded-full ${
-                                  link.badge === 'New' 
-                                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' 
-                                    : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+              {/* DASHBOARD SECTION - Only show when authenticated */}
+              {isAuthenticated && (
+                <div className="mb-2">
+                  <button
+                    onClick={() => setDashboardExpanded(!dashboardExpanded)}
+                    className="group flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                  >
+                    <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
+                      Dashboard
+                    </span>
+                    {dashboardExpanded ? (
+                      <ChevronUp className="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                    ) : (
+                      <ChevronDown className="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                    )}
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {dashboardExpanded && (
+                      <motion.div
+                        initial="closed"
+                        animate="open"
+                        exit="closed"
+                        variants={sectionVariants}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="space-y-0.5 mt-1">
+                          {dashboardLinks.map((link) => {
+                            const Icon = link.icon;
+                            const active = isActive(link.href);
+                            return (
+                              <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200 ${
+                                  active
+                                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400 font-medium shadow-sm border border-blue-200 dark:border-blue-800/30'
+                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-sm'
+                                }`}
+                              >
+                                <div className={`p-1.5 rounded-lg transition-all duration-200 ${
+                                  active 
+                                    ? 'bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md' 
+                                    : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
                                 }`}>
-                                  {link.badge}
-                                </span>
-                              )}
-                              {active && (
-                                <span className="w-1.5 h-8 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></span>
-                              )}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                                  <Icon className="h-4 w-4" />
+                                </div>
+                                <div className="flex-1">
+                                  <span className="font-medium">{link.label}</span>
+                                  <p className="text-[10px] text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400 transition-colors">
+                                    {link.description}
+                                  </p>
+                                </div>
+                                {link.badge && (
+                                  <span className={`text-[8px] font-medium px-1.5 py-0.5 rounded-full ${
+                                    link.badge === 'New' 
+                                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' 
+                                      : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                                  }`}>
+                                    {link.badge}
+                                  </span>
+                                )}
+                                {active && (
+                                  <span className="w-1.5 h-8 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
             </div>
 
-            {/* User Section with enhanced styling */}
+            {/* User Section - Show different content based on auth status */}
             <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-800">
-              <div className="flex items-center gap-3 mb-3 group cursor-default">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-300">
-                  S
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    Sarah Johnson
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">sarah@example.com</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <Link
-                  href="/dashboard/profile"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 text-sm group"
-                >
-                  <UserCircle className="h-4 w-4 text-gray-400 group-hover:text-indigo-500 transition-colors" />
-                  <span className="group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Profile</span>
-                </Link>
-                <Link
-                  href="/dashboard/settings"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 text-sm group"
-                >
-                  <Settings className="h-4 w-4 text-gray-400 group-hover:text-indigo-500 transition-colors" />
-                  <span className="group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Settings</span>
-                </Link>
-              </div>
+              {isAuthenticated ? (
+                // Authenticated User Section
+                <>
+                  <div className="flex items-center gap-3 mb-3 group cursor-default">
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
+                        {user?.image ? (
+                          <Image
+                            src={user.image}
+                            alt={getUserName()}
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <span className="text-sm font-bold text-blue-600">
+                            {getUserInitials()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full border-2 border-white"></div>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {getUserName()}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+                      <p className="text-[9px] text-blue-500 dark:text-blue-400 font-medium uppercase tracking-wider">
+                        {user?.role || 'USER'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <Link
+                      href="/dashboard/profile"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 text-sm group"
+                    >
+                      <UserCircle className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                      <span className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Profile</span>
+                    </Link>
+                    <Link
+                      href="/dashboard/settings"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 text-sm group"
+                    >
+                      <Settings className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                      <span className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Settings</span>
+                    </Link>
+                  </div>
 
-              <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className="flex items-center gap-3 w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 text-sm group"
-              >
-                {isDarkMode ? <Sun className="h-4 w-4 text-gray-400 group-hover:text-indigo-500 transition-colors" /> : <Moon className="h-4 w-4 text-gray-400 group-hover:text-indigo-500 transition-colors" />}
-                <span className="group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                  {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-                </span>
-              </button>
+                  <button
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 text-sm group mb-2"
+                  >
+                    {isDarkMode ? <Sun className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" /> : <Moon className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />}
+                    <span className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                    </span>
+                  </button>
+
+                  {/* Sign Out Button */}
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-300 dark:hover:border-red-700 transition-all duration-200 text-sm group"
+                  >
+                    <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                    <span className="group-hover:text-red-700 dark:group-hover:text-red-300 transition-colors">Sign Out</span>
+                  </button>
+                </>
+              ) : (
+                // Unauthenticated User Section
+                <>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <Link
+                      href="/login"
+                      className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 text-sm group"
+                    >
+                      <span className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Log In</span>
+                    </Link>
+                    <Link
+                      href="/join"
+                      className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 text-sm group"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>Join Now</span>
+                    </Link>
+                  </div>
+
+                  <button
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 text-sm group"
+                  >
+                    {isDarkMode ? <Sun className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" /> : <Moon className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />}
+                    <span className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                    </span>
+                  </button>
+                </>
+              )}
             </div>
 
-            {/* Join Button - Enhanced */}
+            {/* Bottom Action Button - Changes based on auth status */}
             <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800">
-              <Link
-                href="/join"
-                className="group flex items-center justify-center gap-2 w-full rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <Sparkles className="h-4 w-4 group-hover:rotate-12 transition-transform duration-300" />
-                Join the Community
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
-              </Link>
+              {isAuthenticated ? (
+                <Link
+                  href="/dashboard"
+                  className="group flex items-center justify-center gap-2 w-full rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <LayoutDashboard className="h-4 w-4 group-hover:rotate-12 transition-transform duration-300" />
+                  Go to Dashboard
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                </Link>
+              ) : (
+                <Link
+                  href="/join"
+                  className="group flex items-center justify-center gap-2 w-full rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Sparkles className="h-4 w-4 group-hover:rotate-12 transition-transform duration-300" />
+                  Join the Community
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                </Link>
+              )}
             </div>
           </div>
         ) : (
           // Collapsed Sidebar with tooltips
           <div className="flex-1 overflow-y-auto flex flex-col items-center py-4 space-y-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
             <div className="flex items-center justify-center py-2 border-b border-gray-200 dark:border-gray-800 w-full pb-4">
-              <div className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20 hover:scale-110 transition-transform duration-300">
+              <div className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-500/20 hover:scale-110 transition-transform duration-300">
                 <Image
                   src="/community-website-logo.png"
                   alt="Community Ecosystem Logo"
@@ -573,7 +681,7 @@ export default function DesktopSidebar({
                   href={link.href}
                   className={`group relative flex items-center justify-center rounded-lg p-2.5 text-sm transition-all w-12 h-12 ${
                     active
-                      ? 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400 shadow-sm'
                       : 'text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
                 >
@@ -585,19 +693,22 @@ export default function DesktopSidebar({
               );
             })}
 
-            <Link
-              href="/dashboard"
-              className={`group relative flex items-center justify-center rounded-lg p-2.5 text-sm transition-all w-12 h-12 ${
-                isActive('/dashboard')
-                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
-            >
-              <LayoutDashboard className="h-5 w-5" />
-              <span className="absolute left-full ml-3 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                Dashboard
-              </span>
-            </Link>
+            {/* Show Dashboard link only when authenticated */}
+            {isAuthenticated && (
+              <Link
+                href="/dashboard"
+                className={`group relative flex items-center justify-center rounded-lg p-2.5 text-sm transition-all w-12 h-12 ${
+                  isActive('/dashboard')
+                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                <LayoutDashboard className="h-5 w-5" />
+                <span className="absolute left-full ml-3 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                  Dashboard
+                </span>
+              </Link>
+            )}
 
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
@@ -608,6 +719,19 @@ export default function DesktopSidebar({
                 {isDarkMode ? 'Light Mode' : 'Dark Mode'}
               </span>
             </button>
+
+            {/* Sign Out in collapsed mode */}
+            {isAuthenticated && (
+              <button
+                onClick={handleSignOut}
+                className="group relative flex items-center justify-center rounded-lg p-2.5 text-sm transition-all w-12 h-12 text-red-400 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="absolute left-full ml-3 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                  Sign Out
+                </span>
+              </button>
+            )}
           </div>
         )}
       </aside>

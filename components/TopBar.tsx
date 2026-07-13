@@ -35,6 +35,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/app/lib/auth/useAuth';
 
 interface TopBarProps {
   sidebarOpen: boolean;
@@ -57,6 +58,9 @@ export default function TopBar({
 }: TopBarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, status, actions } = useAuth();
+  const isAuthenticated = status === 'authenticated';
+
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -72,16 +76,39 @@ export default function TopBar({
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  // Handle sign out using centralized auth
+  const handleSignOut = async () => {
+    setUserDropdownOpen(false);
+    await actions.signOutUser();
+  };
+
+  // Get user initials from centralized auth
+  const getUserInitials = () => {
+    if (user?.name) {
+      return user.name.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
+
+  // Get user display name from centralized auth
+  const getUserName = () => {
+    if (user?.name) return user.name;
+    if (user?.email) return user.email.split('@')[0];
+    return 'User';
+  };
+
   // User dropdown items
-  const userDropdownItems = [
+  const userDropdownItems = isAuthenticated ? [
     { icon: UserCircle, label: 'My Profile', href: '/dashboard/profile' },
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: MessageSquare, label: 'Messages', href: '/dashboard/messages' },
     { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
     { icon: Bookmark, label: 'Saved Projects', href: '/dashboard/saved' },
     { icon: Gift, label: 'Invite Friends', href: '#' },
-    { icon: LogOut, label: 'Sign Out', href: '#', isDanger: true },
-  ];
+  ] : [];
 
   // Quick actions for desktop top bar
   const quickActions = [
@@ -126,12 +153,6 @@ export default function TopBar({
     }
   };
 
-  // Check if a link is active
-  const isActiveLink = (href: string) => {
-    if (href === '/') return pathname === href;
-    return pathname.startsWith(href);
-  };
-
   // If mobile, render the mobile header
   if (isMobile) {
     return (
@@ -154,7 +175,7 @@ export default function TopBar({
               </button>
               
               <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-500/20">
                   <Image
                     src="/community-website-logo.png"
                     alt="Community Ecosystem Logo"
@@ -190,92 +211,98 @@ export default function TopBar({
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
 
-              {/* Messages */}
-              <Link
-                href="/dashboard/messages"
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400 relative"
-                aria-label="Messages"
-              >
-                <MessageSquare className="h-5 w-5" />
-              </Link>
-
-              {/* Notifications */}
-              <div className="relative">
-                <button
-                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+              {/* Messages - Only show when authenticated */}
+              {isAuthenticated && (
+                <Link
+                  href="/dashboard/messages"
                   className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400 relative"
-                  aria-label="Notifications"
+                  aria-label="Messages"
                 >
-                  <Bell className="h-5 w-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md shadow-indigo-500/30">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
+                  <MessageSquare className="h-5 w-5" />
+                </Link>
+              )}
 
-                {/* Notifications Dropdown */}
-                <AnimatePresence>
-                  {notificationsOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
-                    >
-                      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                        <button 
-                          onClick={() => setNotificationsOpen(false)}
-                          className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors font-medium"
-                        >
-                          Mark all read
-                        </button>
-                      </div>
-                      <div className="max-h-80 overflow-y-auto">
-                        {notifications.map((notif) => (
-                          <Link
-                            key={notif.id}
-                            href={notif.link}
+              {/* Notifications - Only show when authenticated */}
+              {isAuthenticated && (
+                <div className="relative">
+                  <button
+                    onClick={() => setNotificationsOpen(!notificationsOpen)}
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400 relative"
+                    aria-label="Notifications"
+                  >
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md shadow-blue-500/30">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Notifications Dropdown */}
+                  <AnimatePresence>
+                    {notificationsOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                      >
+                        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                          <button 
                             onClick={() => setNotificationsOpen(false)}
-                            className={`block p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-0 ${
-                              !notif.read ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : ''
-                            }`}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium"
                           >
-                            <div className="flex items-start gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center flex-shrink-0">
-                                <span className="text-indigo-600 dark:text-indigo-400 text-xs font-bold">✓</span>
+                            Mark all read
+                          </button>
+                        </div>
+                        <div className="max-h-80 overflow-y-auto">
+                          {notifications.map((notif) => (
+                            <Link
+                              key={notif.id}
+                              href={notif.link}
+                              onClick={() => setNotificationsOpen(false)}
+                              className={`block p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-0 ${
+                                !notif.read ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-blue-600 dark:text-blue-400 text-xs font-bold">✓</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white">{notif.title}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">{notif.message}</p>
+                                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{notif.time}</p>
+                                </div>
+                                {!notif.read && (
+                                  <span className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full flex-shrink-0 mt-2"></span>
+                                )}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">{notif.title}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{notif.message}</p>
-                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{notif.time}</p>
-                              </div>
-                              {!notif.read && (
-                                <span className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full flex-shrink-0 mt-2"></span>
-                              )}
-                            </div>
+                            </Link>
+                          ))}
+                        </div>
+                        <div className="p-3 border-t border-gray-200 dark:border-gray-700 text-center">
+                          <Link href="/dashboard/messages" className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium">
+                            View all notifications
                           </Link>
-                        ))}
-                      </div>
-                      <div className="p-3 border-t border-gray-200 dark:border-gray-700 text-center">
-                        <Link href="/dashboard/messages" className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors font-medium">
-                          View all notifications
-                        </Link>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
 
-              {/* Join Button */}
-              <Link
-                href="/join"
-                className="ml-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/30 active:scale-95"
-              >
-                Join
-              </Link>
+              {/* Join/Login Button - Only show when NOT authenticated */}
+              {!isAuthenticated && (
+                <Link
+                  href="/join"
+                  className="ml-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/30 active:scale-95"
+                >
+                  Join
+                </Link>
+              )}
             </div>
           </div>
 
@@ -295,7 +322,7 @@ export default function TopBar({
                   placeholder="Search projects, developers, resources..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 dark:focus:ring-indigo-400/50 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   autoFocus
                 />
                 <button
@@ -363,7 +390,7 @@ export default function TopBar({
               placeholder="Search projects, developers, resources..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-12 py-2 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 dark:focus:ring-indigo-400/50 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="w-full pl-10 pr-12 py-2 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-600 font-mono">
               ⌘K
@@ -374,22 +401,24 @@ export default function TopBar({
         {/* Right: Actions */}
         <div className="flex items-center gap-0.5">
           {/* Quick Actions - Desktop Only */}
-          <div className="hidden xl:flex items-center gap-1 mr-1">
-            {quickActions.map((action) => {
-              const Icon = action.icon;
-              return (
-                <Link
-                  key={action.label}
-                  href={action.href}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                  title={action.label}
-                >
-                  <Icon className="h-4 w-4" />
-                </Link>
-              );
-            })}
-            <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
-          </div>
+          {isAuthenticated && (
+            <div className="hidden xl:flex items-center gap-1 mr-1">
+              {quickActions.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <Link
+                    key={action.label}
+                    href={action.href}
+                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    title={action.label}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </Link>
+                );
+              })}
+              <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+            </div>
+          )}
 
           {/* Dark Mode Toggle */}
           <button
@@ -409,134 +438,195 @@ export default function TopBar({
             <HelpCircle className="h-5 w-5" />
           </Link>
 
-          {/* Notifications */}
-          <div className="relative">
-            <button
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400 relative"
-              aria-label="Notifications"
-            >
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md shadow-indigo-500/30">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
+          {/* Notifications - Only show when authenticated */}
+          {isAuthenticated && (
+            <div className="relative">
+              <button
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400 relative"
+                aria-label="Notifications"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md shadow-blue-500/30">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
 
-            {/* Notifications Dropdown */}
-            <AnimatePresence>
-              {notificationsOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
-                >
-                  <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                    <button 
-                      onClick={() => setNotificationsOpen(false)}
-                      className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors font-medium"
-                    >
-                      Mark all read
-                    </button>
-                  </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {notifications.map((notif) => (
-                      <Link
-                        key={notif.id}
-                        href={notif.link}
+              {/* Notifications Dropdown */}
+              <AnimatePresence>
+                {notificationsOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                  >
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                      <button 
                         onClick={() => setNotificationsOpen(false)}
-                        className={`block p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-0 ${
-                          !notif.read ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : ''
-                        }`}
+                        className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium"
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center flex-shrink-0">
-                            <span className="text-indigo-600 dark:text-indigo-400 text-xs font-bold">✓</span>
+                        Mark all read
+                      </button>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {notifications.map((notif) => (
+                        <Link
+                          key={notif.id}
+                          href={notif.link}
+                          onClick={() => setNotificationsOpen(false)}
+                          className={`block p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-0 ${
+                            !notif.read ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center flex-shrink-0">
+                              <span className="text-blue-600 dark:text-blue-400 text-xs font-bold">✓</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">{notif.title}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{notif.message}</p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{notif.time}</p>
+                            </div>
+                            {!notif.read && (
+                              <span className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full flex-shrink-0 mt-2"></span>
+                            )}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{notif.title}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{notif.message}</p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{notif.time}</p>
-                          </div>
-                          {!notif.read && (
-                            <span className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full flex-shrink-0 mt-2"></span>
-                          )}
-                        </div>
+                        </Link>
+                      ))}
+                    </div>
+                    <div className="p-3 border-t border-gray-200 dark:border-gray-700 text-center">
+                      <Link href="/dashboard/messages" className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium">
+                        View all notifications
                       </Link>
-                    ))}
-                  </div>
-                  <div className="p-3 border-t border-gray-200 dark:border-gray-700 text-center">
-                    <Link href="/dashboard/messages" className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors font-medium">
-                      View all notifications
-                    </Link>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
-          {/* User Avatar with Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-1 transition-colors ml-1"
-              aria-label="User menu"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold shadow-md shadow-indigo-500/20">
-                  S
+          {/* User Avatar with Dropdown - Only show when authenticated */}
+          {isAuthenticated ? (
+            <div className="relative">
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-1 transition-colors ml-1"
+                aria-label="User menu"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
+                      {user?.image ? (
+                        <Image
+                          src={user.image}
+                          alt={getUserName()}
+                          width={32}
+                          height={32}
+                          className="w-full h-full object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <span className="text-xs font-bold text-blue-600">
+                          {getUserInitials()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full border-2 border-white"></div>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">
+                    {getUserName()}
+                  </span>
                 </div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">Sarah</span>
-              </div>
-              <ChevronDown className={`h-4 w-4 text-gray-400 dark:text-gray-500 hidden sm:block transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
+                <ChevronDown className={`h-4 w-4 text-gray-400 dark:text-gray-500 hidden sm:block transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-            {/* User Dropdown */}
-            <AnimatePresence>
-              {userDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
-                >
-                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md shadow-indigo-500/20">
-                        S
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">Sarah Johnson</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">sarah@example.com</p>
+              {/* User Dropdown */}
+              <AnimatePresence>
+                {userDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                  >
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
+                            {user?.image ? (
+                              <Image
+                                src={user.image}
+                                alt={getUserName()}
+                                width={40}
+                                height={40}
+                                className="w-full h-full object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <span className="text-sm font-bold text-blue-600">
+                                {getUserInitials()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full border-2 border-white"></div>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white">{user?.name || 'User'}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+                          <p className="text-[9px] text-blue-500 dark:text-blue-400 font-medium uppercase tracking-wider">
+                            {user?.role || 'USER'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="py-1">
-                    {userDropdownItems.map((item, index) => (
-                      <Link
-                        key={index}
-                        href={item.href}
-                        onClick={() => setUserDropdownOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                          item.isDanger 
-                            ? 'text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20' 
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                        }`}
+                    <div className="py-1">
+                      {userDropdownItems.map((item, index) => (
+                        <Link
+                          key={index}
+                          href={item.href}
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                        >
+                          <item.icon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                          {item.label}
+                        </Link>
+                      ))}
+                      <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                      <button
+                        onClick={handleSignOut}
+                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
                       >
-                        <item.icon className={`h-4 w-4 ${item.isDanger ? 'text-rose-500' : 'text-gray-400 dark:text-gray-500'}`} />
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                        <LogOut className="h-4 w-4 text-rose-500 dark:text-rose-400" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            // Show Login/Join buttons when not authenticated
+            <div className="flex items-center gap-2 ml-2">
+              <Link
+                href="/login"
+                className="px-4 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                Log In
+              </Link>
+              <Link
+                href="/join"
+                className="px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg transition-all hover:shadow-lg hover:shadow-blue-500/30 active:scale-95"
+              >
+                Join
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </header>
