@@ -1,68 +1,29 @@
 // app/api/profile/route.ts
 import { NextResponse } from 'next/server'
-
-// Try to import with fallback
-let getAuth: any, requireAuth: any, prisma: any
-
-try {
-  const authServer = await import('@/app/lib/auth/server')
-  getAuth = authServer.getAuth
-  requireAuth = authServer.requireAuth
-  console.log('✅ Auth server imported successfully')
-} catch (error) {
-  console.error('❌ Failed to import auth server:', error)
-}
-
-try {
-  const prismaModule = await import('@/app/lib/prisma')
-  prisma = prismaModule.prisma
-  console.log('✅ Prisma imported successfully')
-} catch (error) {
-  console.error('❌ Failed to import prisma:', error)
-}
+import { getToken } from 'next-auth/jwt'
+import { prisma } from '@/app/lib/prisma'
 
 export async function GET(request: Request) {
   console.log('🔍 Profile GET called')
   
   try {
-    // If imports failed, return mock data
-    if (!getAuth || !prisma) {
-      console.log('⚠️ Imports not available, returning mock data')
-      return NextResponse.json({
-        id: 'mock-user-id',
-        name: 'User (Mock)',
-        username: '@user',
-        image: null,
-        bio: 'Mock profile data',
-        location: 'Mock Location',
-        skills: ['React', 'Next.js'],
-        github: '',
-        linkedin: '',
-        portfolio: '',
-        role: 'USER',
-        createdAt: new Date().toISOString(),
-      })
+    // ✅ Use getToken directly in API route
+    const token = await getToken({
+      req: request as any,
+      secret: process.env.NEXTAUTH_SECRET,
+    })
+
+    console.log('📡 Token found:', !!token)
+
+    if (!token?.id) {
+      console.log('❌ No token or user ID found')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-
-    let user
-
-    if (userId) {
-      user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: { role: true },
-      })
-    } else {
-      const session = await getAuth()
-      if (session?.user) {
-        user = await prisma.user.findUnique({
-          where: { id: session.user.id },
-          include: { role: true },
-        })
-      }
-    }
+    const user = await prisma.user.findUnique({
+      where: { id: token.id as string },
+      include: { role: true },
+    })
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -93,16 +54,14 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    // Check if imports are available
-    if (!requireAuth || !prisma) {
-      return NextResponse.json(
-        { error: 'Server not fully initialized' },
-        { status: 500 }
-      )
-    }
+    const token = await getToken({
+      req: request as any,
+      secret: process.env.NEXTAUTH_SECRET,
+    })
 
-    const session = await requireAuth()
-    const userId = session.user.id
+    if (!token?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     const body = await request.json()
     const {
@@ -120,7 +79,7 @@ export async function PUT(request: Request) {
       const existingUser = await prisma.user.findFirst({
         where: {
           username,
-          NOT: { id: userId },
+          NOT: { id: token.id as string },
         },
       })
       if (existingUser) {
@@ -132,7 +91,7 @@ export async function PUT(request: Request) {
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id: token.id as string },
       data: {
         name,
         username,

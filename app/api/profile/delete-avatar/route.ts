@@ -1,6 +1,6 @@
 // app/api/profile/delete-avatar/route.ts
 import { NextResponse } from 'next/server'
-import { requireAuth } from '@/app/lib/auth/server'
+import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/app/lib/prisma'
 import { createClient } from '@supabase/supabase-js'
 
@@ -17,8 +17,20 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey || process.env.NEX
 // ✅ DELETE - Protected (requires authentication)
 export async function DELETE(request: Request) {
   try {
-    const session = await requireAuth()
-    const userId = session.user.id
+    // ✅ Use getToken directly instead of requireAuth
+    const token = await getToken({
+      req: request as any,
+      secret: process.env.NEXTAUTH_SECRET,
+    })
+
+    if (!token?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const userId = token.id as string
 
     // Get user
     const user = await prisma.user.findUnique({
@@ -54,12 +66,6 @@ export async function DELETE(request: Request) {
       data: { image: null },
     })
 
-    // Broadcast avatar deletion via Socket.io
-    if (global.io) {
-      global.io.to(`user:${userId}`).emit('avatar:updated', { userId, imageUrl: null })
-      console.log('📡 Avatar deletion broadcasted via Socket.io:', { userId })
-    }
-
     return NextResponse.json({
       success: true,
       message: 'Avatar deleted successfully',
@@ -71,4 +77,15 @@ export async function DELETE(request: Request) {
       { status: 500 }
     )
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  })
 }

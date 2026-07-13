@@ -1,6 +1,6 @@
 // app/api/profile/upload-avatar/route.ts
 import { NextResponse } from 'next/server'
-import { requireAuth } from '@/app/lib/auth/server'
+import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/app/lib/prisma'
 import { createClient } from '@supabase/supabase-js'
 
@@ -16,8 +16,20 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey || process.env.NEX
 
 export async function POST(request: Request) {
   try {
-    const session = await requireAuth()
-    const userId = session.user.id
+    // ✅ Use getToken directly instead of requireAuth
+    const token = await getToken({
+      req: request as any,
+      secret: process.env.NEXTAUTH_SECRET,
+    })
+
+    if (!token?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const userId = token.id as string
 
     const formData = await request.formData()
     const file = formData.get('file') as File
@@ -113,12 +125,6 @@ export async function POST(request: Request) {
       where: { id: userId },
       data: { image: avatarUrl },
     })
-
-    // Broadcast avatar update via Socket.io
-    if (global.io) {
-      global.io.to(`user:${userId}`).emit('avatar:updated', { userId, imageUrl: avatarUrl })
-      console.log('📡 Avatar update broadcasted via Socket.io:', { userId, avatarUrl })
-    }
 
     return NextResponse.json({
       success: true,
