@@ -17,19 +17,11 @@ import {
   Bookmark,
   Gift,
   LogOut,
-  Sparkles,
   Home,
   ChevronRight,
   MessageSquare,
   Plus,
   FolderGit2,
-  Users,
-  CalendarDays,
-  BookOpen,
-  Info,
-  FolderKanban,
-  Star,
-  User,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -47,14 +39,21 @@ interface TopBarProps {
   mobileMenuOpen?: boolean;
 }
 
-export default function TopBar({ 
-  sidebarOpen, 
-  setSidebarOpen, 
-  isDarkMode, 
+// ─────────────────────────────────────────────────────────────
+// Brand tokens — matches DesktopSidebar / MobileMenu: black + dark navy only.
+// ─────────────────────────────────────────────────────────────
+const BRAND_GRADIENT = 'from-[#0B0F1A] via-[#16223F] to-[#1B2A56]';
+const NAVY = '#1B2A56';
+const NAVY_DARK = '#8CA0DE';
+
+export default function TopBar({
+  sidebarOpen,
+  setSidebarOpen,
+  isDarkMode,
   setIsDarkMode,
   isMobile = false,
   onMenuToggle,
-  mobileMenuOpen = false
+  mobileMenuOpen = false,
 }: TopBarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -77,7 +76,7 @@ export default function TopBar({
     { id: 4, title: 'New member joined', message: 'Welcome James Wilson to the community!', time: '1 day ago', read: true, link: '/community' },
   ];
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Handle sign out using centralized auth
   const handleSignOut = async () => {
@@ -87,12 +86,8 @@ export default function TopBar({
 
   // Get user initials from centralized auth
   const getUserInitials = () => {
-    if (user?.name) {
-      return user.name.charAt(0).toUpperCase();
-    }
-    if (user?.email) {
-      return user.email.charAt(0).toUpperCase();
-    }
+    if (user?.name) return user.name.charAt(0).toUpperCase();
+    if (user?.email) return user.email.charAt(0).toUpperCase();
     return 'U';
   };
 
@@ -104,14 +99,16 @@ export default function TopBar({
   };
 
   // User dropdown items
-  const userDropdownItems = isAuthenticated ? [
-    { icon: UserCircle, label: 'My Profile', href: '/dashboard/profile' },
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-    { icon: MessageSquare, label: 'Messages', href: '/dashboard/messages' },
-    { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
-    { icon: Bookmark, label: 'Saved Projects', href: '/dashboard/saved' },
-    { icon: Gift, label: 'Invite Friends', href: '#' },
-  ] : [];
+  const userDropdownItems = isAuthenticated
+    ? [
+        { icon: UserCircle, label: 'My Profile', href: '/dashboard/profile' },
+        { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+        { icon: MessageSquare, label: 'Messages', href: '/dashboard/messages' },
+        { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
+        { icon: Bookmark, label: 'Saved Projects', href: '/dashboard/saved' },
+        { icon: Gift, label: 'Invite Friends', href: '#' },
+      ]
+    : [];
 
   // Quick actions for desktop top bar
   const quickActions = [
@@ -120,25 +117,18 @@ export default function TopBar({
     { icon: FolderGit2, label: 'Projects', href: '/dashboard/projects' },
   ];
 
-  // Get current page name for breadcrumb
-  const getPageName = () => {
-    if (pathname === '/') return 'Home';
-    const segments = pathname.split('/').filter(Boolean);
-    return segments[segments.length - 1]?.replace(/-/g, ' ') || 'Dashboard';
-  };
-
   // Get breadcrumb items
   const getBreadcrumbs = () => {
     const segments = pathname.split('/').filter(Boolean);
     if (segments.length === 0) return [{ label: 'Home', href: '/' }];
-    
+
     const crumbs = [{ label: 'Home', href: '/' }];
     let currentPath = '';
     for (const segment of segments) {
       currentPath += `/${segment}`;
-      crumbs.push({ 
-        label: segment.replace(/-/g, ' '), 
-        href: currentPath 
+      crumbs.push({
+        label: segment.replace(/-/g, ' '),
+        href: currentPath,
       });
     }
     return crumbs;
@@ -159,7 +149,7 @@ export default function TopBar({
   // If mobile, render the mobile header
   if (isMobile) {
     return (
-      <header className="lg:hidden sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-800/50 shadow-sm">
+      <header className="lg:hidden sticky top-0 z-50 bg-white/95 dark:bg-[#101114]/95 backdrop-blur-md border-b border-stone-200/70 dark:border-white/10 shadow-sm">
         <div className="px-4 py-3">
           {/* Top Row: Menu, Logo, Actions */}
           <div className="flex items-center justify-between">
@@ -167,18 +157,18 @@ export default function TopBar({
             <div className="flex items-center gap-2">
               <button
                 onClick={onMenuToggle}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none"
+                className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors focus:outline-none"
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? (
-                  <X className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                  <X className="h-6 w-6 text-stone-700 dark:text-stone-300" />
                 ) : (
-                  <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                  <Menu className="h-6 w-6 text-stone-700 dark:text-stone-300" />
                 )}
               </button>
-              
+
               <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-500/20">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-br ${BRAND_GRADIENT} shadow-sm`}>
                   <Image
                     src="/community-website-logo.png"
                     alt="Community Ecosystem Logo"
@@ -187,9 +177,9 @@ export default function TopBar({
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <div className="hidden xs:flex flex-col">
-                  <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight">Community</span>
-                  <span className="text-[9px] text-gray-500 dark:text-gray-400 leading-tight">Ecosystem</span>
+                <div className="hidden xs:flex flex-col leading-tight">
+                  <span className="text-sm font-semibold tracking-tight text-stone-900 dark:text-white">Community</span>
+                  <span className="text-[9px] text-stone-400 dark:text-stone-500 tracking-wider uppercase">Ecosystem</span>
                 </div>
               </Link>
             </div>
@@ -199,7 +189,7 @@ export default function TopBar({
               {/* Search Button */}
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+                className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400"
                 aria-label="Search"
               >
                 <Search className="h-5 w-5" />
@@ -208,7 +198,7 @@ export default function TopBar({
               {/* Dark Mode Toggle */}
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+                className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400"
                 aria-label="Toggle theme"
               >
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -218,7 +208,7 @@ export default function TopBar({
               {isAuthenticated && (
                 <Link
                   href="/dashboard/messages"
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400 relative"
+                  className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400 relative"
                   aria-label="Messages"
                 >
                   <MessageSquare className="h-5 w-5" />
@@ -230,12 +220,14 @@ export default function TopBar({
                 <div className="relative">
                   <button
                     onClick={() => setNotificationsOpen(!notificationsOpen)}
-                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400 relative"
+                    className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400 relative"
                     aria-label="Notifications"
                   >
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md shadow-blue-500/30">
+                      <span
+                        className={`absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r ${BRAND_GRADIENT} text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm`}
+                      >
                         {unreadCount}
                       </span>
                     )}
@@ -249,13 +241,14 @@ export default function TopBar({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                        className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#16181D] rounded-xl shadow-2xl border border-stone-200 dark:border-white/10 overflow-hidden z-50"
                       >
-                        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                          <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                          <button 
+                        <div className="p-4 border-b border-stone-200 dark:border-white/10 flex items-center justify-between">
+                          <h3 className="font-semibold text-stone-900 dark:text-white text-sm">Notifications</h3>
+                          <button
                             onClick={() => setNotificationsOpen(false)}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium"
+                            className="text-xs font-medium transition-colors"
+                            style={{ color: NAVY }}
                           >
                             Mark all read
                           </button>
@@ -266,28 +259,32 @@ export default function TopBar({
                               key={notif.id}
                               href={notif.link}
                               onClick={() => setNotificationsOpen(false)}
-                              className={`block p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-0 ${
-                                !notif.read ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''
+                              className={`block p-3 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors border-b border-stone-100 dark:border-white/5 last:border-0 ${
+                                !notif.read ? 'bg-[#1B2A56]/[0.04] dark:bg-[#1B2A56]/10' : ''
                               }`}
                             >
                               <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-blue-600 dark:text-blue-400 text-xs font-bold">✓</span>
+                                <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-xs font-bold" style={{ color: NAVY }}>✓</span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-900 dark:text-white">{notif.title}</p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">{notif.message}</p>
-                                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{notif.time}</p>
+                                  <p className="text-sm font-medium text-stone-900 dark:text-white">{notif.title}</p>
+                                  <p className="text-xs text-stone-500 dark:text-stone-400">{notif.message}</p>
+                                  <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">{notif.time}</p>
                                 </div>
                                 {!notif.read && (
-                                  <span className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full flex-shrink-0 mt-2"></span>
+                                  <span className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ backgroundColor: NAVY }} />
                                 )}
                               </div>
                             </Link>
                           ))}
                         </div>
-                        <div className="p-3 border-t border-gray-200 dark:border-gray-700 text-center">
-                          <Link href="/dashboard/messages" className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium">
+                        <div className="p-3 border-t border-stone-200 dark:border-white/10 text-center">
+                          <Link
+                            href="/dashboard/messages"
+                            className="text-sm font-medium transition-colors"
+                            style={{ color: NAVY }}
+                          >
                             View all notifications
                           </Link>
                         </div>
@@ -301,7 +298,7 @@ export default function TopBar({
               {!isAuthenticated && (
                 <Link
                   href="/join"
-                  className="ml-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/30 active:scale-95"
+                  className={`ml-1 rounded-full bg-gradient-to-r ${BRAND_GRADIENT} px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:shadow-md active:scale-95`}
                 >
                   Join
                 </Link>
@@ -319,19 +316,19 @@ export default function TopBar({
               className="mt-3"
             >
               <form onSubmit={handleSearch} className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500" />
                 <input
                   type="text"
                   placeholder="Search projects, developers, resources..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="w-full pl-10 pr-4 py-2.5 bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 dark:focus:ring-[#8CA0DE]/30 focus:border-transparent transition-all text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500"
                   autoFocus
                 />
                 <button
                   type="button"
                   onClick={() => setSearchOpen(false)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-stone-100 dark:hover:bg-white/10 transition-colors text-stone-400"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -345,33 +342,29 @@ export default function TopBar({
 
   // Desktop header
   return (
-    <header className="hidden lg:block sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-800/50 shadow-sm">
+    <header className="hidden lg:block sticky top-0 z-50 bg-white/95 dark:bg-[#101114]/95 backdrop-blur-md border-b border-stone-200/70 dark:border-white/10 shadow-sm">
       <div className="px-6 py-2.5 flex items-center justify-between">
         {/* Left Section - Sidebar toggle and breadcrumb */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
             aria-label="Toggle sidebar"
           >
-            <Menu className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <Menu className="h-5 w-5 text-stone-500 dark:text-stone-400" />
           </button>
-          
+
           {/* Breadcrumb Navigation */}
           <nav className="hidden md:flex items-center gap-1 text-sm" aria-label="Breadcrumb">
             {breadcrumbs.map((crumb, index) => (
               <div key={crumb.href} className="flex items-center gap-1">
-                {index > 0 && (
-                  <ChevronRight className="h-3.5 w-3.5 text-gray-400 dark:text-gray-600" />
-                )}
+                {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-stone-300 dark:text-stone-600" />}
                 {index === breadcrumbs.length - 1 ? (
-                  <span className="font-medium text-gray-900 dark:text-white capitalize">
-                    {crumb.label}
-                  </span>
+                  <span className="font-medium text-stone-900 dark:text-white capitalize">{crumb.label}</span>
                 ) : (
                   <Link
                     href={crumb.href}
-                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors capitalize"
+                    className="text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 transition-colors capitalize"
                   >
                     {index === 0 && <Home className="h-3.5 w-3.5 inline mr-1" />}
                     {crumb.label}
@@ -386,16 +379,16 @@ export default function TopBar({
         <div className="hidden md:flex flex-1 max-w-md mx-4 relative">
           <form onSubmit={handleSearch} className="w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <Search className="h-4 w-4 text-stone-400 dark:text-stone-500" />
             </div>
             <input
               type="text"
               placeholder="Search projects, developers, resources..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-12 py-2 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="w-full pl-10 pr-12 py-2 bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 dark:focus:ring-[#8CA0DE]/30 focus:border-transparent transition-all text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500"
             />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-600 font-mono">
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 dark:text-stone-500 bg-stone-100 dark:bg-white/10 px-1.5 py-0.5 rounded border border-stone-200 dark:border-white/10 font-mono">
               ⌘K
             </kbd>
           </form>
@@ -412,21 +405,21 @@ export default function TopBar({
                   <Link
                     key={action.label}
                     href={action.href}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    className="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
                     title={action.label}
                   >
                     <Icon className="h-4 w-4" />
                   </Link>
                 );
               })}
-              <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+              <div className="w-px h-6 bg-stone-200 dark:bg-white/10 mx-1" />
             </div>
           )}
 
           {/* Dark Mode Toggle */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+            className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400"
             aria-label="Toggle theme"
           >
             {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -435,7 +428,7 @@ export default function TopBar({
           {/* Help - Links to FAQ */}
           <Link
             href="/faq"
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+            className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400"
             aria-label="Help"
           >
             <HelpCircle className="h-5 w-5" />
@@ -446,12 +439,14 @@ export default function TopBar({
             <div className="relative">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400 relative"
+                className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400 relative"
                 aria-label="Notifications"
               >
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md shadow-blue-500/30">
+                  <span
+                    className={`absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r ${BRAND_GRADIENT} text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm`}
+                  >
                     {unreadCount}
                   </span>
                 )}
@@ -465,13 +460,14 @@ export default function TopBar({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                    className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#16181D] rounded-xl shadow-2xl border border-stone-200 dark:border-white/10 overflow-hidden z-50"
                   >
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                      <button 
+                    <div className="p-4 border-b border-stone-200 dark:border-white/10 flex items-center justify-between">
+                      <h3 className="font-semibold text-stone-900 dark:text-white text-sm">Notifications</h3>
+                      <button
                         onClick={() => setNotificationsOpen(false)}
-                        className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium"
+                        className="text-xs font-medium transition-colors"
+                        style={{ color: NAVY }}
                       >
                         Mark all read
                       </button>
@@ -482,28 +478,32 @@ export default function TopBar({
                           key={notif.id}
                           href={notif.link}
                           onClick={() => setNotificationsOpen(false)}
-                          className={`block p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-0 ${
-                            !notif.read ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''
+                          className={`block p-3 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors border-b border-stone-100 dark:border-white/5 last:border-0 ${
+                            !notif.read ? 'bg-[#1B2A56]/[0.04] dark:bg-[#1B2A56]/10' : ''
                           }`}
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center flex-shrink-0">
-                              <span className="text-blue-600 dark:text-blue-400 text-xs font-bold">✓</span>
+                            <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-bold" style={{ color: NAVY }}>✓</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">{notif.title}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{notif.message}</p>
-                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{notif.time}</p>
+                              <p className="text-sm font-medium text-stone-900 dark:text-white">{notif.title}</p>
+                              <p className="text-xs text-stone-500 dark:text-stone-400">{notif.message}</p>
+                              <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">{notif.time}</p>
                             </div>
                             {!notif.read && (
-                              <span className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full flex-shrink-0 mt-2"></span>
+                              <span className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ backgroundColor: NAVY }} />
                             )}
                           </div>
                         </Link>
                       ))}
                     </div>
-                    <div className="p-3 border-t border-gray-200 dark:border-gray-700 text-center">
-                      <Link href="/dashboard/messages" className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium">
+                    <div className="p-3 border-t border-stone-200 dark:border-white/10 text-center">
+                      <Link
+                        href="/dashboard/messages"
+                        className="text-sm font-medium transition-colors"
+                        style={{ color: NAVY }}
+                      >
                         View all notifications
                       </Link>
                     </div>
@@ -518,12 +518,14 @@ export default function TopBar({
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-1 transition-colors ml-1"
+                className="flex items-center gap-2 pl-2 border-l border-stone-200 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-white/5 rounded-lg p-1 transition-colors ml-1"
                 aria-label="User menu"
               >
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
+                    <div
+                      className={`w-8 h-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-[#101114] shadow-sm bg-gradient-to-br ${BRAND_GRADIENT} flex items-center justify-center`}
+                    >
                       {avatarUrl ? (
                         <Image
                           src={avatarUrl}
@@ -534,18 +536,23 @@ export default function TopBar({
                           unoptimized
                         />
                       ) : (
-                        <span className="text-xs font-bold text-blue-600">
-                          {getUserInitials()}
-                        </span>
+                        <span className="text-xs font-bold text-white">{getUserInitials()}</span>
                       )}
                     </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full border-2 border-white"></div>
+                    <div
+                      className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-[#101114]"
+                      style={{ backgroundColor: NAVY }}
+                    />
                   </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">
+                  <span className="text-sm font-medium text-stone-600 dark:text-stone-300 hidden sm:block">
                     {getUserName()}
                   </span>
                 </div>
-                <ChevronDown className={`h-4 w-4 text-gray-400 dark:text-gray-500 hidden sm:block transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown
+                  className={`h-4 w-4 text-stone-400 dark:text-stone-500 hidden sm:block transition-transform duration-200 ${
+                    userDropdownOpen ? 'rotate-180' : ''
+                  }`}
+                />
               </button>
 
               {/* User Dropdown */}
@@ -556,12 +563,14 @@ export default function TopBar({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                    className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#16181D] rounded-xl shadow-2xl border border-stone-200 dark:border-white/10 overflow-hidden z-50"
                   >
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div className="p-4 border-b border-stone-200 dark:border-white/10">
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
+                          <div
+                            className={`w-10 h-10 rounded-full overflow-hidden ring-2 ring-white dark:ring-[#101114] shadow-sm bg-gradient-to-br ${BRAND_GRADIENT} flex items-center justify-center`}
+                          >
                             {avatarUrl ? (
                               <Image
                                 src={avatarUrl}
@@ -572,17 +581,18 @@ export default function TopBar({
                                 unoptimized
                               />
                             ) : (
-                              <span className="text-sm font-bold text-blue-600">
-                                {getUserInitials()}
-                              </span>
+                              <span className="text-sm font-bold text-white">{getUserInitials()}</span>
                             )}
                           </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full border-2 border-white"></div>
+                          <div
+                            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-white dark:ring-[#101114]"
+                            style={{ backgroundColor: NAVY }}
+                          />
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 dark:text-white">{user?.name || 'User'}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
-                          <p className="text-[9px] text-blue-500 dark:text-blue-400 font-medium uppercase tracking-wider">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-stone-900 dark:text-white truncate">{user?.name || 'User'}</p>
+                          <p className="text-xs text-stone-400 dark:text-stone-500 truncate">{user?.email}</p>
+                          <p className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: NAVY }}>
                             {user?.role || 'USER'}
                           </p>
                         </div>
@@ -594,18 +604,18 @@ export default function TopBar({
                           key={index}
                           href={item.href}
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
                         >
-                          <item.icon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                          <item.icon className="h-4 w-4 text-stone-400 dark:text-stone-500" />
                           {item.label}
                         </Link>
                       ))}
-                      <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                      <div className="border-t border-stone-200 dark:border-white/10 my-1" />
                       <button
                         onClick={handleSignOut}
-                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                       >
-                        <LogOut className="h-4 w-4 text-rose-500 dark:text-rose-400" />
+                        <LogOut className="h-4 w-4" />
                         Sign Out
                       </button>
                     </div>
@@ -618,13 +628,13 @@ export default function TopBar({
             <div className="flex items-center gap-2 ml-2">
               <Link
                 href="/login"
-                className="px-4 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="px-4 py-1.5 text-sm font-medium text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5 rounded-lg transition-colors"
               >
                 Log In
               </Link>
               <Link
                 href="/join"
-                className="px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg transition-all hover:shadow-lg hover:shadow-blue-500/30 active:scale-95"
+                className={`px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r ${BRAND_GRADIENT} rounded-lg transition-all hover:shadow-md active:scale-95`}
               >
                 Join
               </Link>
