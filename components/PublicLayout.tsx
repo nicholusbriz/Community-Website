@@ -67,29 +67,16 @@ export default function PublicLayout({
     visible: {
       x: 0,
       transition: {
-        duration: 0.3,
-        ease: 'easeInOut',
+        duration: 0.4,
+        ease: [0.25, 0.1, 0.25, 1],
       }
     },
     exit: {
       x: '-100%',
       transition: {
-        duration: 0.3,
-        ease: 'easeInOut',
+        duration: 0.35,
+        ease: [0.25, 0.1, 0.25, 1],
       }
-    }
-  };
-
-  // ✅ Simple backdrop fade
-  const backdropVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { duration: 0.2 }
-    },
-    exit: { 
-      opacity: 0,
-      transition: { duration: 0.2 }
     }
   };
 
@@ -118,8 +105,8 @@ export default function PublicLayout({
           />
 
           {/* Desktop Main Content with medium padding */}
-          <main className="min-h-screen w-full px-6 py-6 md:px-8 md:py-8">
-            <div className="max-w-7xl mx-auto">
+          <main className="min-h-screen w-full">
+            <div className="w-full">
               {children}
             </div>
           </main>
@@ -156,8 +143,8 @@ export default function PublicLayout({
           />
 
           {/* Mobile Main Content with medium padding */}
-          <main className="flex-1 w-full overflow-x-hidden overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
-            <div className="w-full max-w-full">
+          <main className="flex-1 w-full overflow-x-hidden overflow-y-auto">
+            <div className="w-full">
               {children}
             </div>
           </main>
@@ -181,23 +168,25 @@ export default function PublicLayout({
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
+            {/* Subtle backdrop for overlay effect */}
             <motion.div
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={backdropVariants}
-              className="fixed inset-0 z-[9998] lg:hidden bg-black/60 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9998] lg:hidden bg-black/30"
               onClick={() => setMobileMenuOpen(false)}
             />
 
+            {/* Independent overlay menu */}
             <motion.div
               initial="hidden"
               animate="visible"
               exit="exit"
               variants={mobileMenuVariants}
-              className="fixed top-0 left-0 h-full z-[9999] lg:hidden"
+              className="fixed top-0 left-0 h-full w-[85%] max-w-sm z-[9999] lg:hidden shadow-2xl"
             >
-              <MobileMenu 
+              <MobileMenu
                 isOpen={mobileMenuOpen}
                 onClose={() => setMobileMenuOpen(false)}
                 isDarkMode={isDarkMode}

@@ -150,39 +150,38 @@ export default function TopBar({
   if (isMobile) {
     return (
       <header className="lg:hidden sticky top-0 z-50 bg-white/95 dark:bg-[#101114]/95 backdrop-blur-md border-b border-stone-200/70 dark:border-white/10 shadow-sm">
-        <div className="px-4 py-3">
-          {/* Top Row: Menu, Logo, Actions */}
-          <div className="flex items-center justify-between">
-            {/* Left: Menu + Logo */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={onMenuToggle}
-                className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors focus:outline-none"
-                aria-label="Toggle menu"
-              >
-                {mobileMenuOpen ? (
-                  <X className="h-6 w-6 text-stone-700 dark:text-stone-300" />
-                ) : (
-                  <Menu className="h-6 w-6 text-stone-700 dark:text-stone-300" />
-                )}
-              </button>
+        <div className="px-4 py-3 relative">
+          {/* Fixed Hamburger Button - positioned on top */}
+          <button
+            onClick={onMenuToggle}
+            className="absolute top-1/2 -translate-y-1/2 left-4 z-10 p-2.5 rounded-xl bg-white dark:bg-[#101114] shadow-lg border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-white/10 transition-all duration-200 focus:outline-none"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5 text-stone-700 dark:text-stone-300" />
+            ) : (
+              <Menu className="h-5 w-5 text-stone-700 dark:text-stone-300" />
+            )}
+          </button>
 
-              <Link href="/" className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-br ${BRAND_GRADIENT} shadow-sm`}>
-                  <Image
-                    src="/community-website-logo.png"
-                    alt="Community Ecosystem Logo"
-                    width={32}
-                    height={32}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="hidden xs:flex flex-col leading-tight">
-                  <span className="text-sm font-semibold tracking-tight text-stone-900 dark:text-white">Community</span>
-                  <span className="text-[9px] text-stone-400 dark:text-stone-500 tracking-wider uppercase">Ecosystem</span>
-                </div>
-              </Link>
-            </div>
+          {/* Top Row: Logo, Actions */}
+          <div className="flex items-center justify-between pl-14">
+            {/* Left: Logo */}
+            <Link href="/" className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-br ${BRAND_GRADIENT} shadow-sm`}>
+                <Image
+                  src="/community-website-logo.png"
+                  alt="Community Ecosystem Logo"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="hidden xs:flex flex-col leading-tight">
+                <span className="text-sm font-semibold tracking-tight text-stone-900 dark:text-white">Community</span>
+                <span className="text-[9px] text-stone-400 dark:text-stone-500 tracking-wider uppercase">Ecosystem</span>
+              </div>
+            </Link>
 
             {/* Right: Actions */}
             <div className="flex items-center gap-0.5">
