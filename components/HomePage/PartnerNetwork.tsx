@@ -6,15 +6,15 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useInView } from 'framer-motion';
 
 const partners = [
-  { name: 'Google', color: '#4285F4' },
-  { name: 'Microsoft', color: '#00A4EF' },
-  { name: 'GitHub', color: '#F5F5F5' },
-  { name: 'MongoDB', color: '#47A248' },
-  { name: 'Supabase', color: '#3ECF8E' },
-  { name: 'AWS', color: '#FF9900' },
-  { name: 'Flutter', color: '#02569B' },
-  { name: 'Vercel', color: '#FFFFFF' },
-  { name: 'OpenAI', color: '#10A37F' },
+  { name: 'Google', color: '#8CA0DE' },
+  { name: 'Microsoft', color: '#8CA0DE' },
+  { name: 'GitHub', color: '#8CA0DE' },
+  { name: 'MongoDB', color: '#8CA0DE' },
+  { name: 'Supabase', color: '#8CA0DE' },
+  { name: 'AWS', color: '#8CA0DE' },
+  { name: 'Flutter', color: '#8CA0DE' },
+  { name: 'Vercel', color: '#8CA0DE' },
+  { name: 'OpenAI', color: '#8CA0DE' },
 ];
 
 export default function PartnerNetwork() {
@@ -32,7 +32,7 @@ export default function PartnerNetwork() {
   return (
     <section
       ref={sectionRef}
-      className="relative py-20 bg-[#0A0B0E] border-y border-white/5 overflow-hidden"
+      className="relative py-12 sm:py-20 bg-[#0A0B0E] border-y border-white/5 overflow-hidden"
     >
       {/* Animated background glow */}
       <motion.div
@@ -44,19 +44,19 @@ export default function PartnerNetwork() {
         style={{ opacity, y }}
         className="relative max-w-6xl mx-auto px-6"
       >
-        <div className="text-center mb-12">
-          <p className="text-sm font-medium text-white/40 uppercase tracking-wider">
+        <div className="text-center mb-8 sm:mb-12">
+          <p className="text-xs sm:text-sm font-medium text-white/40 uppercase tracking-wider">
             Trusted by leading technology companies
           </p>
           <motion.div
-            className="h-[2px] w-20 mx-auto mt-4 bg-gradient-to-r from-transparent via-[#8CA0DE] to-transparent"
+            className="h-[2px] w-16 sm:w-20 mx-auto mt-3 sm:mt-4 bg-gradient-to-r from-transparent via-[#8CA0DE] to-transparent"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
           />
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-6 px-4">
           {partners.map((partner, index) => (
             <motion.div
               key={partner.name}
@@ -68,9 +68,9 @@ export default function PartnerNetwork() {
               onHoverEnd={() => setActiveIndex(null)}
               className="relative group"
             >
-              <div className="px-5 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#8CA0DE]/30 transition-all duration-300 backdrop-blur-sm">
+              <div className="px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#8CA0DE]/30 transition-all duration-300 backdrop-blur-md shadow-lg shadow-black/10">
                 <span 
-                  className="font-semibold text-sm transition-colors duration-300"
+                  className="font-semibold text-xs sm:text-sm transition-colors duration-300"
                   style={{
                     color: activeIndex === index ? partner.color : 'rgba(255,255,255,0.6)',
                   }}

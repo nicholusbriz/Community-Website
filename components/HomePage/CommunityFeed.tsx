@@ -108,7 +108,7 @@ export default function CommunityFeed() {
   return (
     <section
       ref={sectionRef}
-      className="relative py-20 bg-gradient-to-b from-[#0B0F1A] to-[#0A0B0E] overflow-hidden"
+      className="relative py-12 sm:py-20 bg-gradient-to-b from-[#0B0F1A] to-[#0A0B0E] overflow-hidden"
     >
       {/* Background decorations */}
       <div className="absolute inset-0">
@@ -121,11 +121,11 @@ export default function CommunityFeed() {
         className="relative max-w-4xl mx-auto px-6"
       >
         {/* Header */}
-        <div className="text-center mb-8">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
+        <div className="text-center mb-6 sm:mb-8 px-4">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
             Live Community
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mt-2 leading-tight">
             What's happening in the <span className="text-[#8CA0DE]">ecosystem</span>
           </h2>
         </div>
@@ -135,7 +135,7 @@ export default function CommunityFeed() {
           <div className="lg:col-span-2 space-y-4">
             {/* Stories bar */}
             <motion.div
-              className="flex gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 overflow-x-auto"
+              className="flex gap-2 sm:gap-3 p-3 sm:p-4 rounded-2xl bg-white/5 border border-white/10 overflow-x-auto backdrop-blur-md shadow-lg shadow-black/10"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -146,23 +146,23 @@ export default function CommunityFeed() {
                   className="flex-shrink-0 text-center cursor-pointer group"
                 >
                   <div className="relative">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1B2A56] to-[#8CA0DE] flex items-center justify-center group-hover:scale-105 transition-transform">
-                      <span className="text-white font-semibold text-sm">{item.avatar}</span>
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#8CA0DE] flex items-center justify-center group-hover:scale-105 transition-transform shadow-lg shadow-black/20">
+                      <span className="text-white font-semibold text-xs sm:text-sm">{item.avatar}</span>
                     </div>
                     {item.isOnline && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-[#0A0B0E]" />
+                      <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#8CA0DE] border-2 border-[#0A0B0E]" />
                     )}
                   </div>
-                  <p className="text-xs text-white/40 mt-1 truncate w-14">
+                  <p className="text-[10px] sm:text-xs text-white/40 mt-1 truncate w-12 sm:w-14">
                     {item.user.split(' ')[0]}
                   </p>
                 </div>
               ))}
               <div className="flex-shrink-0 text-center cursor-pointer">
-                <div className="w-14 h-14 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center hover:border-[#8CA0DE] transition-colors">
-                  <span className="text-white/40 text-2xl">+</span>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center hover:border-[#8CA0DE] transition-colors">
+                  <span className="text-white/40 text-xl sm:text-2xl">+</span>
                 </div>
-                <p className="text-xs text-white/40 mt-1">More</p>
+                <p className="text-[10px] sm:text-xs text-white/40 mt-1">More</p>
               </div>
             </motion.div>
 
@@ -176,20 +176,20 @@ export default function CommunityFeed() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="group bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-all duration-300 hover:border-[#8CA0DE]/30"
+                  className="group bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-4 md:p-5 hover:bg-white/10 transition-all duration-300 hover:border-[#8CA0DE]/30 shadow-lg shadow-black/10 backdrop-blur-md"
                 >
                   <div className="flex items-start gap-3">
                     <div className="relative flex-shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1B2A56] to-[#8CA0DE] flex items-center justify-center">
-                        <span className="text-white font-semibold text-sm">{item.avatar}</span>
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#8CA0DE] flex items-center justify-center shadow-lg shadow-black/20">
+                        <span className="text-white font-semibold text-xs sm:text-sm">{item.avatar}</span>
                       </div>
                       {item.isOnline && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-[#0A0B0E]" />
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#8CA0DE] border-2 border-[#0A0B0E]" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-white text-sm">{item.user}</span>
+                        <span className="font-semibold text-white text-xs sm:text-sm">{item.user}</span>
                         {item.isVerified && (
                           <Sparkles className="w-3 h-3 text-[#8CA0DE]" />
                         )}
@@ -201,42 +201,42 @@ export default function CommunityFeed() {
                           {item.time}
                         </span>
                       </div>
-                      <p className="text-white/80 text-sm leading-relaxed mt-1">
+                      <p className="text-white/80 text-xs sm:text-sm leading-relaxed mt-1">
                         {item.content}
                       </p>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {item.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="text-xs px-2 py-1 rounded-full bg-[#1B2A56]/50 text-[#8CA0DE] border border-[#1B2A56] cursor-pointer hover:bg-[#1B2A56] transition-colors"
+                            className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-[#1B2A56]/50 text-[#8CA0DE] border border-[#1B2A56] cursor-pointer hover:bg-[#1B2A56] transition-colors"
                           >
                             #{tag}
                           </span>
                         ))}
                       </div>
-                      <div className="flex items-center gap-6 mt-3 text-sm">
+                      <div className="flex items-center gap-4 sm:gap-6 mt-2 sm:mt-3 text-[10px] sm:text-xs">
                         <button
                           onClick={() => toggleLike(item.id)}
                           className={`flex items-center gap-1 transition-colors ${
                             isLiked ? 'text-[#8CA0DE]' : 'text-white/40 hover:text-[#8CA0DE]'
                           }`}
                         >
-                          <Heart className={`w-4 h-4 ${isLiked ? 'fill-[#8CA0DE]' : ''}`} />
+                          <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLiked ? 'fill-[#8CA0DE]' : ''}`} />
                           <span>{isLiked ? item.likes + 1 : item.likes}</span>
                         </button>
                         <button
                           onClick={() => setShowComment(showComment === item.id ? null : item.id)}
                           className="flex items-center gap-1 text-white/40 hover:text-[#8CA0DE] transition-colors"
                         >
-                          <MessageCircle className="w-4 h-4" />
+                          <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           <span>{item.comments}</span>
                         </button>
                         <button className="flex items-center gap-1 text-white/40 hover:text-[#8CA0DE] transition-colors">
-                          <Share2 className="w-4 h-4" />
+                          <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           <span>{item.shares}</span>
                         </button>
                         <button className="text-white/30 hover:text-white/60 transition-colors ml-auto">
-                          <MoreHorizontal className="w-4 h-4" />
+                          <MoreHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                       </div>
 
@@ -250,23 +250,23 @@ export default function CommunityFeed() {
                           className="mt-3 pt-3 border-t border-white/5"
                         >
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 flex items-center gap-2 bg-white/5 rounded-full px-3 py-1.5 border border-white/10 focus-within:border-[#8CA0DE]/50 transition-colors">
+                            <div className="flex-1 flex items-center gap-2 bg-white/5 rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 border border-white/10 focus-within:border-[#8CA0DE]/50 transition-colors">
                               <input
                                 type="text"
                                 placeholder="Write a comment..."
                                 value={commentText}
                                 onChange={(e) => setCommentText(e.target.value)}
-                                className="flex-1 bg-transparent text-white text-sm outline-none"
+                                className="flex-1 bg-transparent text-white text-xs sm:text-sm outline-none"
                               />
                               <button className="text-white/30 hover:text-white/60 transition-colors">
-                                <Smile className="w-4 h-4" />
+                                <Smile className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </button>
                               <button className="text-white/30 hover:text-white/60 transition-colors">
-                                <ImageIcon className="w-4 h-4" />
+                                <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </button>
                             </div>
-                            <button className="p-1.5 rounded-full bg-[#8CA0DE] text-[#0A0B0E] hover:bg-white transition-colors">
-                              <Send className="w-4 h-4" />
+                            <button className="p-1 sm:p-1.5 rounded-full bg-[#8CA0DE] text-[#0A0B0E] hover:bg-white transition-colors shadow-lg shadow-black/20">
+                              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                           </div>
                         </motion.div>
@@ -283,7 +283,7 @@ export default function CommunityFeed() {
               transition={{ delay: 0.5 }}
               className="text-center"
             >
-              <button className="text-[#8CA0DE] hover:text-white transition-colors text-sm font-medium">
+              <button className="text-[#8CA0DE] hover:text-white transition-colors text-xs sm:text-sm font-medium">
                 View all activity →
               </button>
             </motion.div>
@@ -292,14 +292,14 @@ export default function CommunityFeed() {
           {/* Sidebar - Trending */}
           <div className="space-y-4">
             <motion.div
-              className="p-4 rounded-2xl bg-white/5 border border-white/10"
+              className="p-3 sm:p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-lg shadow-black/10"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
               <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="w-4 h-4 text-[#8CA0DE]" />
-                <span className="text-sm font-semibold text-white">Trending</span>
+                <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8CA0DE]" />
+                <span className="text-xs sm:text-sm font-semibold text-white">Trending</span>
               </div>
               <div className="space-y-2">
                 {trendingTopics.map((topic, index) => (
@@ -307,10 +307,10 @@ export default function CommunityFeed() {
                     key={topic}
                     className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
                   >
-                    <span className="text-sm text-white/60 hover:text-white transition-colors">
+                    <span className="text-xs sm:text-sm text-white/60 hover:text-white transition-colors">
                       {topic}
                     </span>
-                    <span className="text-xs text-white/30">
+                    <span className="text-[10px] sm:text-xs text-white/30">
                       #{index + 1}
                     </span>
                   </div>
@@ -319,19 +319,19 @@ export default function CommunityFeed() {
             </motion.div>
 
             <motion.div
-              className="p-4 rounded-2xl bg-gradient-to-br from-[#1B2A56] to-[#0A0B0E] border border-[#8CA0DE]/20"
+              className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-[#1B2A56] to-[#0A0B0E] border border-[#8CA0DE]/20 shadow-xl shadow-[#1B2A56]/30"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <UsersIcon className="w-4 h-4 text-[#8CA0DE]" />
-                <span className="text-sm font-semibold text-white">Community Stats</span>
+                <UsersIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8CA0DE]" />
+                <span className="text-xs sm:text-sm font-semibold text-white">Community Stats</span>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-white/40">Online Now</span>
-                  <span className="text-green-400">2,847</span>
+                  <span className="text-[#8CA0DE]">2,847</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/40">New Posts Today</span>

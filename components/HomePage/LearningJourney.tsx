@@ -28,7 +28,7 @@ const steps = [
     title: 'Learn the Fundamentals',
     description: 'Master core concepts through structured paths',
     icon: Code2,
-    color: '#6C8BCF',
+    color: '#8CA0DE',
     duration: '3 months',
   },
   {
@@ -36,7 +36,7 @@ const steps = [
     title: 'Build Projects',
     description: 'Apply your skills to real-world projects',
     icon: GitBranch,
-    color: '#4A7FC7',
+    color: '#8CA0DE',
     duration: '2 months',
   },
   {
@@ -44,7 +44,7 @@ const steps = [
     title: 'Collaborate with Peers',
     description: 'Join open source and team projects',
     icon: Users,
-    color: '#5A8FCF',
+    color: '#8CA0DE',
     duration: 'Ongoing',
   },
   {
@@ -52,7 +52,7 @@ const steps = [
     title: 'Get Mentorship',
     description: 'Learn from experienced professionals',
     icon: Users,
-    color: '#3A6FB7',
+    color: '#8CA0DE',
     duration: '1 month+',
   },
   {
@@ -60,7 +60,7 @@ const steps = [
     title: 'Launch Your Career',
     description: 'Find internships, jobs, and opportunities',
     icon: Briefcase,
-    color: '#7A9FDF',
+    color: '#8CA0DE',
     duration: '3 months',
   },
   {
@@ -103,15 +103,15 @@ export default function LearningJourney() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-8 sm:mb-12"
+          className="text-center mb-6 sm:mb-12 px-4"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
             Your Journey
           </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mt-2">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mt-2 leading-tight">
             Become an African <span className="text-[#8CA0DE]">Tech Leader</span>
           </h2>
-          <p className="text-white/60 max-w-2xl mx-auto mt-2 text-xs sm:text-sm px-4">
+          <p className="text-white/60 max-w-2xl mx-auto mt-2 text-xs sm:text-sm leading-relaxed">
             Follow our structured path from beginner to industry leader.
           </p>
         </motion.div>
@@ -139,34 +139,34 @@ export default function LearningJourney() {
                     <div className="w-2 h-2 rounded-full bg-[#8CA0DE] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
                   </div>
 
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 hover:border-[#8CA0DE]/30 transition-all duration-300 hover:bg-white/10">
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-4 md:p-6 hover:border-[#8CA0DE]/30 transition-all duration-300 hover:bg-white/10 shadow-lg shadow-black/10 backdrop-blur-md">
                     <div className="flex flex-wrap items-start gap-3 sm:gap-4">
                       <div className="flex-shrink-0">
                         <div 
-                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center"
+                          className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center"
                           style={{ backgroundColor: `${step.color}30` }}
                         >
-                          <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: step.color }} />
+                          <Icon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ color: step.color }} />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-semibold text-sm sm:text-base text-white" style={{ color: step.color }}>
+                          <h3 className="font-semibold text-xs sm:text-sm md:text-base text-white" style={{ color: step.color }}>
                             {step.title}
                           </h3>
-                          <span className="text-[10px] sm:text-xs px-2 py-1 rounded-full bg-white/5 text-white/40 border border-white/5">
+                          <span className="text-[9px] sm:text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-white/5 text-white/40 border border-white/5">
                             {step.duration}
                           </span>
                         </div>
-                        <p className="text-xs sm:text-sm text-white/60 mt-1">{step.description}</p>
-                        <div className="mt-2 flex items-center gap-2 text-[10px] sm:text-xs text-white/30">
+                        <p className="text-[10px] sm:text-xs md:text-sm text-white/60 mt-1 leading-relaxed">{step.description}</p>
+                        <div className="mt-1.5 sm:mt-2 flex items-center gap-2 text-[9px] sm:text-[10px] sm:text-xs text-white/30">
                           <span>Step {index + 1} of {steps.length}</span>
                           <span className="hidden sm:inline">•</span>
                           <CheckCircle className="w-3 h-3 text-[#8CA0DE]" />
                           <span className="hidden sm:inline">In progress</span>
                         </div>
                       </div>
-                      <button className="flex-shrink-0 text-[#8CA0DE] hover:text-white transition-colors text-xs sm:text-sm">
+                      <button className="flex-shrink-0 text-[#8CA0DE] hover:text-white transition-colors text-[10px] sm:text-xs md:text-sm font-medium">
                         Learn More →
                       </button>
                     </div>
@@ -182,11 +182,11 @@ export default function LearningJourney() {
               transition={{ duration: 0.6, delay: 0.6 }}
               className="sm:ml-16"
             >
-              <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-[#1B2A56] to-[#2A3F7A] border border-[#8CA0DE]/20 text-center">
-                <p className="text-white font-semibold text-sm sm:text-base">
+              <div className="p-3 sm:p-4 md:p-6 rounded-2xl bg-gradient-to-r from-[#1B2A56] to-[#2A3F7A] border border-[#8CA0DE]/20 text-center shadow-xl shadow-[#1B2A56]/30">
+                <p className="text-white font-semibold text-xs sm:text-sm md:text-base">
                   Ready to start your journey?
                 </p>
-                <button className="mt-3 px-4 sm:px-6 py-2 rounded-full bg-[#8CA0DE] text-[#0A0B0E] font-medium hover:bg-white transition-colors text-xs sm:text-sm inline-flex items-center gap-2">
+                <button className="mt-2 sm:mt-3 px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 rounded-full bg-[#8CA0DE] text-[#0A0B0E] font-medium hover:bg-white transition-colors text-[10px] sm:text-xs md:text-sm inline-flex items-center gap-2 shadow-lg shadow-black/20">
                   Join Now
                   <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>

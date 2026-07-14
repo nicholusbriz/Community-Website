@@ -38,7 +38,7 @@ const ecosystemNodes: EcosystemNode[] = [
     id: 'developers', 
     label: 'Developers', 
     icon: Code2, 
-    color: '#6C8BCF',
+    color: '#8CA0DE',
     description: 'Building the future, one line at a time',
     stats: '12,000+ Active'
   },
@@ -46,7 +46,7 @@ const ecosystemNodes: EcosystemNode[] = [
     id: 'students', 
     label: 'Students', 
     icon: GraduationCap, 
-    color: '#3A6FB7',
+    color: '#8CA0DE',
     description: 'Learning and growing together',
     stats: '8,000+ Enrolled'
   },
@@ -54,7 +54,7 @@ const ecosystemNodes: EcosystemNode[] = [
     id: 'startups', 
     label: 'Startups', 
     icon: Rocket, 
-    color: '#4A7FC7',
+    color: '#8CA0DE',
     description: 'Launching the next big thing',
     stats: '400+ Founded'
   },
@@ -62,7 +62,7 @@ const ecosystemNodes: EcosystemNode[] = [
     id: 'mentors', 
     label: 'Mentors', 
     icon: Users, 
-    color: '#5A8FCF',
+    color: '#8CA0DE',
     description: 'Guiding the next generation',
     stats: '600+ Mentors'
   },
@@ -70,7 +70,7 @@ const ecosystemNodes: EcosystemNode[] = [
     id: 'companies', 
     label: 'Companies', 
     icon: Briefcase, 
-    color: '#7A9FDF',
+    color: '#8CA0DE',
     description: 'Hiring and partnering',
     stats: '80+ Partners'
   },
@@ -78,7 +78,7 @@ const ecosystemNodes: EcosystemNode[] = [
     id: 'universities', 
     label: 'Universities', 
     icon: Building2, 
-    color: '#4A7FC7',
+    color: '#8CA0DE',
     description: 'Academic excellence',
     stats: '50+ Connected'
   },
@@ -164,7 +164,7 @@ export default function EcosystemSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative py-24 bg-gradient-to-b from-[#0B0F1A] to-[#0A0B0E] overflow-hidden"
+      className="relative py-16 sm:py-24 bg-gradient-to-b from-[#0B0F1A] to-[#0A0B0E] overflow-hidden"
     >
       <div className="relative w-full max-w-5xl mx-auto px-6">
         {/* Header */}
@@ -172,15 +172,15 @@ export default function EcosystemSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-12 px-4"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
             The Ecosystem
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mt-2 leading-tight">
             One Community. <span className="text-[#8CA0DE]">Infinite Possibilities.</span>
           </h2>
-          <p className="text-white/60 max-w-2xl mx-auto mt-2 text-sm">
+          <p className="text-white/60 max-w-2xl mx-auto mt-2 text-xs sm:text-sm leading-relaxed">
             An interconnected network of developers, innovators, and leaders driving
             Africa's technology revolution forward.
           </p>
@@ -188,7 +188,7 @@ export default function EcosystemSection() {
 
         {/* SVG Ecosystem Visualization */}
         <motion.div 
-          className="relative w-full aspect-square max-w-2xl mx-auto"
+          className="relative w-full aspect-square max-w-lg sm:max-w-xl md:max-w-2xl mx-auto"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={isInView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -340,16 +340,16 @@ export default function EcosystemSection() {
 
           {/* Stats overlay */}
           <motion.div
-            className="absolute bottom-4 left-4"
+            className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-white/5 backdrop-blur-md rounded-lg px-3 py-2 border border-white/10 shadow-lg shadow-black/10"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ delay: 0.8 }}
           >
-            <div className="flex items-center gap-2 text-white/40 text-xs">
+            <div className="flex items-center gap-2 text-white/40 text-[10px] sm:text-xs">
               <GitBranch className="w-3 h-3" />
               <span>Connections: {activeConnections.length}</span>
             </div>
-            <div className="flex items-center gap-2 text-white/40 text-xs mt-1">
+            <div className="flex items-center gap-2 text-white/40 text-[10px] sm:text-xs mt-1">
               <Zap className="w-3 h-3" />
               <span>Nodes: {visibleNodes.length}</span>
             </div>

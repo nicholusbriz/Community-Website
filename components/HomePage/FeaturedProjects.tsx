@@ -21,7 +21,7 @@ const projects = [
     forks: 67,
     contributors: 45,
     language: 'TypeScript',
-    languageColor: '#3178C6',
+    languageColor: '#8CA0DE',
   },
   {
     id: 2,
@@ -31,7 +31,7 @@ const projects = [
     forks: 34,
     contributors: 28,
     language: 'Python',
-    languageColor: '#3572A5',
+    languageColor: '#8CA0DE',
   },
   {
     id: 3,
@@ -41,7 +41,7 @@ const projects = [
     forks: 89,
     contributors: 67,
     language: 'JavaScript',
-    languageColor: '#F7DF1E',
+    languageColor: '#8CA0DE',
   },
   {
     id: 4,
@@ -51,7 +51,7 @@ const projects = [
     forks: 123,
     contributors: 89,
     language: 'React',
-    languageColor: '#61DAFB',
+    languageColor: '#8CA0DE',
   },
 ];
 
@@ -100,14 +100,14 @@ export default function FeaturedProjects() {
         }}
         className="relative max-w-6xl mx-auto px-4 sm:px-6"
       >
-        <div className="text-center mb-8 sm:mb-12">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
+        <div className="text-center mb-6 sm:mb-12 px-4">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
             Open Source Innovation
           </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mt-2">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mt-2 leading-tight">
             Featured <span className="text-[#8CA0DE]">Projects</span>
           </h2>
-          <p className="text-white/60 max-w-2xl mx-auto mt-2 text-xs sm:text-sm px-4">
+          <p className="text-white/60 max-w-2xl mx-auto mt-2 text-xs sm:text-sm leading-relaxed">
             Discover projects built by the Tech Rise Africa community
           </p>
         </div>
@@ -120,23 +120,23 @@ export default function FeaturedProjects() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={!isMobile ? { y: -4 } : {}}
-              className="group bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 hover:border-[#8CA0DE]/30 transition-all duration-300 cursor-pointer"
+              className="group bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-4 md:p-6 hover:border-[#8CA0DE]/30 transition-all duration-300 cursor-pointer shadow-lg shadow-black/10 backdrop-blur-md"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#1B2A56]/50 flex items-center justify-center group-hover:bg-[#1B2A56] transition-colors">
-                    <Code2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#8CA0DE]" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-xl bg-[#1B2A56]/50 flex items-center justify-center group-hover:bg-[#1B2A56] transition-colors">
+                    <Code2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-[#8CA0DE]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-sm sm:text-base text-white group-hover:text-[#8CA0DE] transition-colors">
+                    <h3 className="font-semibold text-xs sm:text-sm md:text-base text-white group-hover:text-[#8CA0DE] transition-colors">
                       {project.name}
                     </h3>
                     <div className="flex items-center gap-2">
                       <div 
-                        className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0"
+                        className="w-1 h-1 sm:w-1.5 sm:h-1.5 md:w-2 md:h-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: project.languageColor }}
                       />
-                      <span className="text-[10px] sm:text-xs text-white/40">
+                      <span className="text-[9px] sm:text-[10px] sm:text-xs text-white/40">
                         {project.language}
                       </span>
                     </div>
@@ -144,24 +144,24 @@ export default function FeaturedProjects() {
                 </div>
                 <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-[#8CA0DE]/40 group-hover:text-[#8CA0DE] transition-colors flex-shrink-0" />
               </div>
-              <p className="text-xs sm:text-sm text-white/60 mb-3 sm:mb-4">
+              <p className="text-[10px] sm:text-xs md:text-sm text-white/60 mb-2 sm:mb-3 md:mb-4 leading-relaxed">
                 {project.description}
               </p>
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 text-[10px] sm:text-xs md:text-sm">
                 <div className="flex items-center gap-1 text-white/40">
-                  <Star className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
                   <span>{project.stars}</span>
                 </div>
                 <div className="flex items-center gap-1 text-white/40">
-                  <GitFork className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <GitFork className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
                   <span>{project.forks}</span>
                 </div>
                 <div className="flex items-center gap-1 text-white/40">
-                  <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
                   <span>{project.contributors}</span>
                 </div>
                 <button className="ml-auto text-[#8CA0DE] hover:text-white transition-colors">
-                  <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
                 </button>
               </div>
             </motion.div>

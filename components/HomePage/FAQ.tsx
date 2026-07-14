@@ -97,41 +97,41 @@ export default function FAQ() {
         }}
         className="relative max-w-4xl mx-auto px-4 sm:px-6"
       >
-        <div className="text-center mb-6 sm:mb-8">
+        <div className="text-center mb-4 sm:mb-6 md:mb-8 px-4">
           <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
             FAQ
           </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mt-2">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mt-2 leading-tight">
             Frequently Asked <span className="text-[#8CA0DE]">Questions</span>
           </h2>
         </div>
 
         {/* Search */}
-        <div className="relative max-w-md mx-auto mb-6 sm:mb-8">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/30" />
+        <div className="relative max-w-md mx-auto mb-4 sm:mb-6 md:mb-8 px-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white/30" />
           <input
             type="text"
             placeholder="Search questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-full bg-white/5 border border-white/10 text-white placeholder-white/30 focus:border-[#8CA0DE]/50 outline-none transition-colors text-xs sm:text-sm"
+            className="w-full pl-8 sm:pl-9 md:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 md:py-3 rounded-full bg-white/5 border border-white/10 text-white placeholder-white/30 focus:border-[#8CA0DE]/50 outline-none transition-colors text-[10px] sm:text-xs md:text-sm"
           />
         </div>
 
-        <div className="space-y-2.5 sm:space-y-3">
+        <div className="space-y-2 sm:space-y-2.5 md:space-y-3">
           {filteredFaqs.map((faq, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="group bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#8CA0DE]/30 transition-all duration-300"
+              className="group bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#8CA0DE]/30 transition-all duration-300 shadow-lg shadow-black/10 backdrop-blur-md"
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors gap-2"
+                className="w-full px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors gap-2"
               >
-                <span className="text-white text-xs sm:text-sm md:text-base font-medium">
+                <span className="text-white text-[10px] sm:text-xs md:text-sm lg:text-base font-medium">
                   {faq.question}
                 </span>
                 <motion.div
@@ -139,7 +139,7 @@ export default function FAQ() {
                   transition={{ duration: 0.3 }}
                   className="flex-shrink-0 ml-2 sm:ml-4"
                 >
-                  <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#8CA0DE]" />
+                  <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-[#8CA0DE]" />
                 </motion.div>
               </button>
               <AnimatePresence>
@@ -149,9 +149,9 @@ export default function FAQ() {
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="px-4 sm:px-6 pb-3 sm:pb-4"
+                    className="px-3 sm:px-4 md:px-6 pb-2 sm:pb-3 md:pb-4"
                   >
-                    <p className="text-white/60 text-xs sm:text-sm leading-relaxed">
+                    <p className="text-white/60 text-[10px] sm:text-xs md:text-sm leading-relaxed">
                       {faq.answer}
                     </p>
                   </motion.div>
@@ -162,13 +162,13 @@ export default function FAQ() {
         </div>
 
         {filteredFaqs.length === 0 && (
-          <div className="text-center text-white/40 py-6 sm:py-8 text-sm sm:text-base">
+          <div className="text-center text-white/40 py-4 sm:py-6 md:py-8 text-[10px] sm:text-xs md:text-sm">
             No questions found matching your search.
           </div>
         )}
 
-        <div className="text-center mt-6 sm:mt-8">
-          <button className="text-[#8CA0DE] hover:text-white transition-colors text-xs sm:text-sm font-medium border border-[#1B2A56] px-4 sm:px-6 py-1.5 sm:py-2 rounded-full hover:border-[#8CA0DE] transition-all">
+        <div className="text-center mt-4 sm:mt-6 md:mt-8">
+          <button className="text-[#8CA0DE] hover:text-white transition-colors text-[10px] sm:text-xs md:text-sm font-medium border border-[#1B2A56] px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2 rounded-full hover:border-[#8CA0DE] transition-all">
             View all FAQs →
           </button>
         </div>
