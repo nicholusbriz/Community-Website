@@ -1,7 +1,7 @@
 // components/HomePage/LearningJourney.tsx
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { 
   Code2, 
@@ -76,37 +76,52 @@ const steps = [
 export default function LearningJourney() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <section
       ref={sectionRef}
-      className="py-24 bg-gradient-to-b from-[#0A0B0E] to-[#0B0F1A]"
+      className="py-12 sm:py-24 bg-[#0A0B0E]"
+      style={{
+        backgroundImage: isMobile 
+          ? 'none' 
+          : 'linear-gradient(to bottom, #0A0B0E, #0B0F1A)'
+      }}
     >
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-12"
         >
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
             Your Journey
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mt-2">
             Become an African <span className="text-[#8CA0DE]">Tech Leader</span>
           </h2>
-          <p className="text-white/60 max-w-2xl mx-auto mt-2 text-sm">
+          <p className="text-white/60 max-w-2xl mx-auto mt-2 text-xs sm:text-sm px-4">
             Follow our structured path from beginner to industry leader.
           </p>
         </motion.div>
 
         {/* Steps timeline */}
         <div className="relative">
-          {/* Timeline line */}
-          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#8CA0DE] via-[#4A7FC7] to-transparent" />
+          {/* Timeline line - hidden on mobile */}
+          <div className="hidden sm:block absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#8CA0DE] via-[#4A7FC7] to-transparent" />
 
-          <div className="space-y-8 pl-16">
+          <div className="space-y-6 sm:space-y-8 sm:pl-16">
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isEven = index % 2 === 0;
@@ -119,39 +134,39 @@ export default function LearningJourney() {
                   transition={{ duration: 0.6, delay: index * 0.08 }}
                   className="relative group"
                 >
-                  {/* Timeline dot */}
-                  <div className="absolute -left-[60px] top-0 w-4 h-4 rounded-full bg-[#1B2A56] border-2 border-[#8CA0DE] flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-[#8CA0DE]" />
+                  {/* Timeline dot - hidden on mobile */}
+                  <div className="hidden sm:block absolute -left-[60px] top-0 w-4 h-4 rounded-full bg-[#1B2A56] border-2 border-[#8CA0DE]">
+                    <div className="w-2 h-2 rounded-full bg-[#8CA0DE] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
                   </div>
 
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-[#8CA0DE]/30 transition-all duration-300 hover:bg-white/10">
-                    <div className="flex flex-wrap items-start gap-4">
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 hover:border-[#8CA0DE]/30 transition-all duration-300 hover:bg-white/10">
+                    <div className="flex flex-wrap items-start gap-3 sm:gap-4">
                       <div className="flex-shrink-0">
                         <div 
-                          className="w-12 h-12 rounded-xl flex items-center justify-center"
+                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center"
                           style={{ backgroundColor: `${step.color}30` }}
                         >
-                          <Icon className="w-6 h-6" style={{ color: step.color }} />
+                          <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: step.color }} />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-semibold text-white" style={{ color: step.color }}>
+                          <h3 className="font-semibold text-sm sm:text-base text-white" style={{ color: step.color }}>
                             {step.title}
                           </h3>
-                          <span className="text-xs px-2 py-1 rounded-full bg-white/5 text-white/40 border border-white/5">
+                          <span className="text-[10px] sm:text-xs px-2 py-1 rounded-full bg-white/5 text-white/40 border border-white/5">
                             {step.duration}
                           </span>
                         </div>
-                        <p className="text-sm text-white/60 mt-1">{step.description}</p>
-                        <div className="mt-2 flex items-center gap-2 text-xs text-white/30">
+                        <p className="text-xs sm:text-sm text-white/60 mt-1">{step.description}</p>
+                        <div className="mt-2 flex items-center gap-2 text-[10px] sm:text-xs text-white/30">
                           <span>Step {index + 1} of {steps.length}</span>
-                          <span>•</span>
+                          <span className="hidden sm:inline">•</span>
                           <CheckCircle className="w-3 h-3 text-[#8CA0DE]" />
-                          <span>In progress</span>
+                          <span className="hidden sm:inline">In progress</span>
                         </div>
                       </div>
-                      <button className="flex-shrink-0 text-[#8CA0DE] hover:text-white transition-colors text-sm">
+                      <button className="flex-shrink-0 text-[#8CA0DE] hover:text-white transition-colors text-xs sm:text-sm">
                         Learn More →
                       </button>
                     </div>
@@ -165,13 +180,15 @@ export default function LearningJourney() {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="ml-16"
+              className="sm:ml-16"
             >
-              <div className="p-6 rounded-2xl bg-gradient-to-r from-[#1B2A56] to-[#2A3F7A] border border-[#8CA0DE]/20 text-center">
-                <p className="text-white font-semibold">Ready to start your journey?</p>
-                <button className="mt-3 px-6 py-2 rounded-full bg-[#8CA0DE] text-[#0A0B0E] font-medium hover:bg-white transition-colors text-sm inline-flex items-center gap-2">
+              <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-[#1B2A56] to-[#2A3F7A] border border-[#8CA0DE]/20 text-center">
+                <p className="text-white font-semibold text-sm sm:text-base">
+                  Ready to start your journey?
+                </p>
+                <button className="mt-3 px-4 sm:px-6 py-2 rounded-full bg-[#8CA0DE] text-[#0A0B0E] font-medium hover:bg-white transition-colors text-xs sm:text-sm inline-flex items-center gap-2">
                   Join Now
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </motion.div>
