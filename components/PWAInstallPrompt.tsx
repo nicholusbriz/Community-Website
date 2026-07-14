@@ -9,6 +9,7 @@ export default function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [showPrompt, setShowPrompt] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [autoDismissTimer, setAutoDismissTimer] = useState<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     // Check if already installed (standalone mode)
@@ -17,10 +18,16 @@ export default function PWAInstallPrompt() {
       return
     }
 
-    // Check if user dismissed the prompt
-    const dismissed = localStorage.getItem('pwa-prompt-dismissed')
-    if (dismissed) {
-      return
+    // Check if user dismissed the prompt (only hide if less than 5 minutes ago)
+    const dismissedTimestamp = localStorage.getItem('pwa-prompt-dismissed')
+    if (dismissedTimestamp) {
+      const fiveMinutesInMs = 5 * 60 * 1000
+      const timeSinceDismissal = Date.now() - parseInt(dismissedTimestamp)
+      if (timeSinceDismissal < fiveMinutesInMs) {
+        return
+      }
+      // Clear the old dismissal if more than 5 minutes have passed
+      localStorage.removeItem('pwa-prompt-dismissed')
     }
 
     // Listen for beforeinstallprompt event (desktop Chrome, Android Chrome)
@@ -51,6 +58,15 @@ export default function PWAInstallPrompt() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
       window.removeEventListener('appinstalled', handleAppInstalled)
       clearTimeout(timer)
+      if (autoDismissTimer) {
+        clearTimeout(autoDismissTimer)
+      }
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
+      clearTimeout(timer)
     }
   }, [isInstalled])
 
@@ -69,7 +85,11 @@ export default function PWAInstallPrompt() {
 
   const handleDismiss = () => {
     setShowPrompt(false)
-    localStorage.setItem('pwa-prompt-dismissed', 'true')
+    localStorage.setItem('pwa-prompt-dismissed', Date.now().toString())
+    if (autoDismissTimer) {
+      clearTimeout(autoDismissTimer)
+      setAutoDismissTimer(null)
+    }
   }
 
   // Don't show on iOS (Safari) since it's not supported

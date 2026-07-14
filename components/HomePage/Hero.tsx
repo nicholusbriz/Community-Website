@@ -46,10 +46,10 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-8"
+            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-6 sm:mb-8 shadow-lg shadow-black/20"
           >
-            <Sparkles className="w-4 h-4 text-[#8CA0DE]" />
-            <span className="text-sm text-white/80">Africa's Largest Technology Community</span>
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#8CA0DE]" />
+            <span className="text-xs sm:text-sm text-white/80 font-medium tracking-wide">Africa's Largest Technology Community</span>
           </motion.div>
 
           {/* Main Title */}
@@ -57,13 +57,13 @@ export default function Hero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="space-y-4 mb-8"
+            className="space-y-3 sm:space-y-4 mb-6 sm:mb-8"
           >
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight leading-tight">
               <span className="text-white">Tech Rise</span>
               <span className="text-[#8CA0DE]"> Africa</span>
             </h1>
-            <p className="text-2xl md:text-4xl lg:text-5xl font-semibold text-white/90">
+            <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold text-white/90 leading-relaxed">
               Learn. Build. Connect. Launch.
             </p>
           </motion.div>
@@ -73,7 +73,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base md:text-xl text-white/60 max-w-2xl mx-auto mb-10 px-4"
+            className="text-sm sm:text-base md:text-lg lg:text-xl text-white/60 max-w-2xl mx-auto mb-8 sm:mb-10 px-4 leading-relaxed"
           >
             Join the largest community of developers, innovators, and entrepreneurs
             building the future of technology in Africa.
@@ -84,21 +84,21 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-wrap items-center justify-center gap-4 mb-16"
+            className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-16 px-4"
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 href="/join"
-                className="group inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold text-white bg-gradient-to-r from-[#1B2A56] to-[#2A3F7A] hover:from-[#2A3F7A] hover:to-[#1B2A56] transition-all duration-300 shadow-xl shadow-[#1B2A56]/30 hover:shadow-2xl"
+                className="group inline-flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-4 rounded-full font-semibold text-white bg-gradient-to-r from-[#1B2A56] to-[#2A3F7A] hover:from-[#2A3F7A] hover:to-[#1B2A56] transition-all duration-300 shadow-xl shadow-[#1B2A56]/30 hover:shadow-2xl text-sm sm:text-base"
               >
                 Join Community
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
-                href="/ecosystem"
-                className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold text-white bg-white/10 border border-white/20 backdrop-blur-sm hover:bg-white/20 transition-all duration-300"
+                href="/community"
+                className="inline-flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-4 rounded-full font-semibold text-white bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 hover:border-white/30 transition-all duration-300 shadow-lg shadow-black/10 text-sm sm:text-base"
               >
                 Explore Ecosystem
               </Link>
@@ -106,9 +106,9 @@ export default function Hero() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold text-white bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300"
+              className="inline-flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-4 rounded-full font-semibold text-white bg-white/5 border border-white/10 backdrop-blur-md hover:bg-white/10 hover:border-white/20 transition-all duration-300 shadow-lg shadow-black/10 text-sm sm:text-base"
             >
-              <Play className="w-5 h-5" />
+              <Play className="w-4 h-4 sm:w-5 sm:h-5" />
               Watch Demo
             </motion.button>
           </motion.div>

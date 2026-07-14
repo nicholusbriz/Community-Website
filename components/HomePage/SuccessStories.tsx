@@ -98,7 +98,7 @@ export default function SuccessStories() {
   return (
     <section
       ref={sectionRef}
-      className="relative py-20 bg-gradient-to-b from-[#0A0B0E] to-[#0B0F1A] overflow-hidden"
+      className="relative py-12 sm:py-20 bg-gradient-to-b from-[#0A0B0E] to-[#0B0F1A] overflow-hidden"
     >
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-[#8CA0DE]/5 blur-3xl" />
@@ -108,11 +108,11 @@ export default function SuccessStories() {
         style={{ opacity, y }}
         className="relative max-w-4xl mx-auto px-6"
       >
-        <div className="text-center mb-8">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
+        <div className="text-center mb-6 sm:mb-8 px-4">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA0DE]">
             Success Stories
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mt-2 leading-tight">
             Our <span className="text-[#8CA0DE]">Community</span> in Action
           </h2>
         </div>
@@ -126,42 +126,42 @@ export default function SuccessStories() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -direction * 50 }}
               transition={{ duration: 0.5 }}
-              className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 hover:border-[#8CA0DE]/30 transition-all duration-300"
+              className="bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 hover:border-[#8CA0DE]/30 transition-all duration-300 shadow-xl shadow-black/20 backdrop-blur-md"
             >
               <div className="flex flex-col items-center text-center">
                 {/* Quote icon */}
-                <Quote className="w-12 h-12 text-[#8CA0DE]/30 mb-4" />
+                <Quote className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-[#8CA0DE]/30 mb-3 sm:mb-4" />
 
                 {/* Content */}
-                <p className="text-white/80 text-lg md:text-xl leading-relaxed max-w-2xl">
+                <p className="text-white/80 text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed max-w-2xl">
                   "{story.content}"
                 </p>
 
                 {/* Avatar & Info */}
-                <div className="flex items-center gap-4 mt-6">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#1B2A56] to-[#8CA0DE] flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-semibold text-xl">{story.avatar}</span>
+                <div className="flex items-center gap-3 sm:gap-4 mt-4 sm:mt-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-[#1B2A56] to-[#8CA0DE] flex items-center justify-center flex-shrink-0 shadow-lg shadow-black/20">
+                    <span className="text-white font-semibold text-lg sm:text-xl">{story.avatar}</span>
                   </div>
                   <div className="text-left">
-                    <h4 className="font-semibold text-white text-lg">{story.name}</h4>
-                    <p className="text-white/60 text-sm">{story.role}</p>
+                    <h4 className="font-semibold text-white text-sm sm:text-base md:text-lg">{story.name}</h4>
+                    <p className="text-white/60 text-xs sm:text-sm">{story.role}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <Icon className="w-4 h-4 text-[#8CA0DE]" />
-                      <span className="text-sm text-[#8CA0DE]">{story.achievement}</span>
+                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8CA0DE]" />
+                      <span className="text-[10px] sm:text-xs md:text-sm text-[#8CA0DE]">{story.achievement}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Rating */}
-                <div className="flex gap-1 mt-4">
+                <div className="flex gap-0.5 sm:gap-1 mt-3 sm:mt-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-[#8CA0DE] text-[#8CA0DE]" />
+                    <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-[#8CA0DE] text-[#8CA0DE]" />
                   ))}
                 </div>
 
                 {/* Tag */}
-                <div className="mt-4">
-                  <span className="text-xs px-3 py-1 rounded-full bg-[#1B2A56] text-[#8CA0DE] border border-[#1B2A56]">
+                <div className="mt-3 sm:mt-4">
+                  <span className="text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-[#1B2A56] text-[#8CA0DE] border border-[#1B2A56]">
                     {story.tag}
                   </span>
                 </div>
@@ -170,12 +170,12 @@ export default function SuccessStories() {
           </AnimatePresence>
 
           {/* Navigation */}
-          <div className="flex justify-center gap-4 mt-6">
+          <div className="flex justify-center gap-3 sm:gap-4 mt-4 sm:mt-6">
             <button
               onClick={prev}
-              className="p-2 rounded-full border border-white/20 hover:border-[#8CA0DE] hover:bg-[#8CA0DE]/10 transition-all duration-300"
+              className="p-1.5 sm:p-2 rounded-full border border-white/20 hover:border-[#8CA0DE] hover:bg-[#8CA0DE]/10 transition-all duration-300"
             >
-              <ChevronLeft className="w-5 h-5 text-white/60" />
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white/60" />
             </button>
             <div className="flex items-center gap-2">
               {stories.map((_, index) => (
@@ -185,17 +185,17 @@ export default function SuccessStories() {
                     setDirection(index > currentIndex ? 1 : -1);
                     setCurrentIndex(index);
                   }}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    index === currentIndex ? 'w-8 bg-[#8CA0DE]' : 'bg-white/20'
+                  className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all ${
+                    index === currentIndex ? 'w-6 sm:w-8 bg-[#8CA0DE]' : 'bg-white/20'
                   }`}
                 />
               ))}
             </div>
             <button
               onClick={next}
-              className="p-2 rounded-full border border-white/20 hover:border-[#8CA0DE] hover:bg-[#8CA0DE]/10 transition-all duration-300"
+              className="p-1.5 sm:p-2 rounded-full border border-white/20 hover:border-[#8CA0DE] hover:bg-[#8CA0DE]/10 transition-all duration-300"
             >
-              <ChevronRight className="w-5 h-5 text-white/60" />
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white/60" />
             </button>
           </div>
         </div>
