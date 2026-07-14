@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Search, Sparkles } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 
 const faqs = [
   {
@@ -52,19 +52,19 @@ export default function FAQ() {
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start end', 'end start'],
-    enabled: !isMobile,
   });
 
+  // Apply transforms conditionally
   const opacity = useTransform(
     scrollYProgress, 
     [0, 0.1, 0.9, 1], 
-    isMobile ? [1, 1, 1, 1] : [0, 1, 1, 0.5]
+    [0, 1, 1, 0.5]
   );
   
   const y = useTransform(
     scrollYProgress, 
     [0, 0.1, 0.9, 1], 
-    isMobile ? [0, 0, 0, 0] : [50, 0, 0, 20]
+    [50, 0, 0, 20]
   );
 
   const filteredFaqs = faqs.filter(faq =>
