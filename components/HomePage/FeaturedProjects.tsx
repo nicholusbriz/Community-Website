@@ -58,37 +58,23 @@ const projects = [
 export default function FeaturedProjects() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
 
   useEffect(() => {
-    const checkScreenSize = () => {
-      const width = window.innerWidth;
-      setIsMobile(width < 640);
-      setIsTablet(width >= 640 && width < 1024);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
     };
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Only use scroll animations on larger screens
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start end', 'end start'],
-    enabled: !isMobile, // Disable scroll animations on mobile
   });
 
-  const opacity = useTransform(
-    scrollYProgress, 
-    [0, 0.1, 0.9, 1], 
-    isMobile ? [1, 1, 1, 1] : [0, 1, 1, 0.5]
-  );
-  
-  const y = useTransform(
-    scrollYProgress, 
-    [0, 0.1, 0.9, 1], 
-    isMobile ? [0, 0, 0, 0] : [50, 0, 0, 20]
-  );
+  const opacity = useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0, 1, 1, 0.5]);
+  const y = useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [50, 0, 0, 20]);
 
   return (
     <section
