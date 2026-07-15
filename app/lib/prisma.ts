@@ -7,7 +7,6 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// ✅ Only create pool if DATABASE_URL exists
 const databaseUrl = process.env.DATABASE_URL
 
 if (!databaseUrl) {
@@ -17,33 +16,56 @@ if (!databaseUrl) {
 // ✅ Create pool with optimized settings for serverless
 const pool = new Pool({
   connectionString: databaseUrl,
-  max: 20, // Max connections in pool
-  idleTimeoutMillis: 30_000, // Close idle connections after 30 seconds
-  connectionTimeoutMillis: 5_000, // Timeout for connection attempts
+  max: process.env.NODE_ENV === 'production' ? 10 : 20, // ✅ Production: smaller pool
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 5_000,
+  // ✅ Add these for better Supabase compatibility
+  ssl: {
+    rejectUnauthorized: false, // ✅ Required for Supabase
+  },
 })
 
-// ✅ Ensure pool is properly closed when the process exits
+// ✅ Ensure pool is properly closed
 process.on('beforeExit', () => {
   pool.end().catch(console.error)
 })
 
 const adapter = new PrismaPg(pool)
 
-// ✅ Use global singleton for Prisma Client
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    log: process.env.NODE_ENV === 'development' 
+      ? ['query', 'error', 'warn'] 
+      : ['error'],
+    // ✅ Optional: Add error handling
   })
 
-// ✅ In development, store in global to prevent multiple instances
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma
 }
 
-// ✅ For production, ensure connections are properly managed
 export async function disconnectPrisma() {
   await prisma.$disconnect()
   await pool.end()
+}
+
+// ✅ Optional: Add health check
+export async function checkDatabaseConnection() {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    return true
+  } catch {
+    return false
+  }
+}
+
+// ✅ Optional: Add transaction helper
+export async function withTransaction<T>(
+  callback: (prisma: PrismaClient) => Promise<T>
+): Promise<T> {
+  return prisma.$transaction(async (tx) => {
+    return callback(tx as PrismaClient)
+  })
 }

@@ -28,6 +28,20 @@ import {
   GraduationCap,
   LogOut,
   Zap,
+  Shield,
+  ShieldCheck,
+  Users as UsersIcon,
+  Database,
+  Server,
+  Activity,
+  BarChart,
+  Mail,
+  FileText,
+  HelpCircle,
+  MapPin,
+  Briefcase,
+  Award,
+  Globe
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -64,6 +78,7 @@ export default function DesktopSidebar({
   const pathname = usePathname();
   const { user, status, actions } = useAuth();
   const isAuthenticated = status === 'authenticated';
+  const userRole = user?.role || 'USER';
 
   // ✅ Simply use user.image from the session - no real-time logic
   const avatarUrl = user?.image || null;
@@ -71,7 +86,6 @@ export default function DesktopSidebar({
   const [mainExpanded, setMainExpanded] = useState(true);
   const [exploreExpanded, setExploreExpanded] = useState(true);
   const [dashboardExpanded, setDashboardExpanded] = useState(true);
-
   const [resourcesExpanded, setResourcesExpanded] = useState(true);
   const [communityExpanded, setCommunityExpanded] = useState(true);
   const [getInvolvedExpanded, setGetInvolvedExpanded] = useState(true);
@@ -80,7 +94,11 @@ export default function DesktopSidebar({
     await actions.signOutUser();
   };
 
-  // Main navigation links with icons and descriptions
+  // ============================================================
+  // 📋 NAVIGATION CONFIGURATION - All routes from proxy
+  // ============================================================
+
+  // 1️⃣ MAIN NAVIGATION - Public Routes
   const mainLinks = [
     { href: '/', label: 'Home', icon: Home, description: 'Dashboard overview' },
     { href: '/about', label: 'About', icon: Info, description: 'Learn about us' },
@@ -89,16 +107,7 @@ export default function DesktopSidebar({
     { href: '/developers', label: 'Developers', icon: Users, description: 'Community members' },
   ];
 
-  const dashboardLinks = [
-    { href: '/dashboard', label: 'Dashboard Home', icon: LayoutDashboard, description: 'Overview' },
-    { href: '/dashboard/projects', label: 'My Projects', icon: FolderKanban, description: 'Your projects' },
-    { href: '/dashboard/projects/new', label: 'Create Project', icon: Plus, description: 'Start new', badge: 'New' },
-    { href: '/dashboard/saved', label: 'Saved Projects', icon: Star, description: 'Bookmarked' },
-    { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, description: 'Inbox', badge: '3' },
-    { href: '/dashboard/profile', label: 'My Profile', icon: User, description: 'Your info' },
-    { href: '/dashboard/settings', label: 'Settings', icon: Settings, description: 'Preferences' },
-  ];
-
+  // 2️⃣ EXPLORE GROUPS - Public/Public Routes
   const navGroups = [
     {
       key: 'resources',
@@ -139,31 +148,54 @@ export default function DesktopSidebar({
       setExpanded: setGetInvolvedExpanded,
       items: [
         { href: '/join', label: 'Join Us', icon: Users, description: 'Become a member' },
-        { href: '/faq', label: 'FAQ', icon: Info, description: 'Common questions' },
-        { href: '/contact', label: 'Contact', icon: Info, description: 'Get in touch' },
+        { href: '/faq', label: 'FAQ', icon: HelpCircle, description: 'Common questions' },
+        { href: '/contact', label: 'Contact', icon: MapPin, description: 'Get in touch' },
       ],
     },
   ];
 
-  const isActive = (href: string) => {
-    if (href === '/') return pathname === href;
-    if (href === '/dashboard') return pathname === '/dashboard';
-    return pathname.startsWith(href);
-  };
-
-  const stats = [
-    { label: 'Members', value: '1.2k', icon: Users, accent: ACCENT.coral },
-    { label: 'Online', value: '89', icon: Zap, accent: ACCENT.teal },
-    { label: 'Projects', value: '456', icon: FolderGit2, accent: ACCENT.amber },
+  // 3️⃣ DASHBOARD LINKS - Protected Routes (Any authenticated user)
+  const dashboardLinks = [
+    { href: '/dashboard', label: 'Dashboard Home', icon: LayoutDashboard, description: 'Overview' },
+    { href: '/dashboard/projects', label: 'My Projects', icon: FolderKanban, description: 'Your projects' },
+    { href: '/dashboard/projects/new', label: 'Create Project', icon: Plus, description: 'Start new', badge: 'New' },
+    { href: '/dashboard/saved', label: 'Saved Projects', icon: Star, description: 'Bookmarked' },
+    { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, description: 'Inbox', badge: '3' },
+    { href: '/dashboard/profile', label: 'My Profile', icon: User, description: 'Your info' },
+    { href: '/dashboard/settings', label: 'Settings', icon: Settings, description: 'Preferences' },
   ];
 
-  // Quick links - show different links based on auth status
+  // 4️⃣ ADMIN LINKS - Admin Routes (ADMIN role only)
+  const adminLinks = [
+    { href: '/admin', label: 'Admin Dashboard', icon: Shield, description: 'Admin overview' },
+    { href: '/admin/users', label: 'Manage Users', icon: UsersIcon, description: 'User management' },
+    { href: '/admin/projects', label: 'Manage Projects', icon: FolderKanban, description: 'Project oversight' },
+    { href: '/admin/analytics', label: 'Analytics', icon: BarChart, description: 'Site analytics' },
+  ];
+
+  // 5️⃣ SUPERADMIN LINKS - SuperAdmin Routes (SUPERADMIN role only)
+  const superAdminLinks = [
+    { href: '/super', label: 'Super Admin', icon: ShieldCheck, description: 'System overview' },
+    { href: '/super/system', label: 'System Settings', icon: Server, description: 'System configuration' },
+    { href: '/super/database', label: 'Database', icon: Database, description: 'Database management' },
+    { href: '/super/logs', label: 'Activity Logs', icon: Activity, description: 'System logs' },
+  ];
+
+  // 6️⃣ QUICK LINKS - Based on auth status and role
   const quickLinks = isAuthenticated
     ? [
         { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', accent: ACCENT.coral },
         { icon: Calendar, label: 'Events', href: '/events', accent: ACCENT.amber },
         { icon: GraduationCap, label: 'Mentors', href: '/mentors', accent: ACCENT.teal },
         { icon: FolderGit2, label: 'Projects', href: '/projects', accent: ACCENT.plum },
+        // ✅ Show admin quick link for ADMIN users
+        ...(userRole === 'ADMIN' ? [
+          { icon: Shield, label: 'Admin', href: '/admin', accent: ACCENT.coral },
+        ] : []),
+        // ✅ Show super admin quick link for SUPERADMIN users
+        ...(userRole === 'SUPERADMIN' ? [
+          { icon: ShieldCheck, label: 'Super', href: '/super', accent: ACCENT.coral },
+        ] : []),
       ]
     : [
         { icon: Users, label: 'Login', href: '/login', accent: ACCENT.coral },
@@ -172,10 +204,21 @@ export default function DesktopSidebar({
         { icon: FolderGit2, label: 'Projects', href: '/projects', accent: ACCENT.plum },
       ];
 
-  const sectionVariants = {
-    open: { opacity: 1, height: 'auto' },
-    closed: { opacity: 0, height: 0 },
+  // ============================================================
+  // 🔧 HELPER FUNCTIONS
+  // ============================================================
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === href;
+    if (href === '/dashboard') return pathname === '/dashboard';
+    if (href === '/admin') return pathname === '/admin';
+    if (href === '/super') return pathname === '/super';
+    return pathname.startsWith(href);
   };
+
+  // Check if user has admin role
+  const isAdmin = userRole === 'ADMIN';
+  const isSuperAdmin = userRole === 'SUPERADMIN';
 
   // Get user initials for avatar from centralized auth
   const getUserInitials = () => {
@@ -191,6 +234,17 @@ export default function DesktopSidebar({
     return 'User';
   };
 
+  const stats = [
+    { label: 'Members', value: '1.2k', icon: Users, accent: ACCENT.coral },
+    { label: 'Online', value: '89', icon: Zap, accent: ACCENT.teal },
+    { label: 'Projects', value: '456', icon: FolderGit2, accent: ACCENT.amber },
+  ];
+
+  const sectionVariants = {
+    open: { opacity: 1, height: 'auto' },
+    closed: { opacity: 0, height: 0 },
+  };
+
   return (
     <div className="hidden lg:flex h-screen fixed top-0 left-0 z-[100]">
       <aside
@@ -198,7 +252,7 @@ export default function DesktopSidebar({
           sidebarOpen ? 'w-72' : 'w-16'
         }`}
       >
-        {/* Signature brand rail — the one gradient the whole design is built around */}
+        {/* Signature brand rail */}
         <div className={`absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b ${BRAND_GRADIENT}`} />
 
         {/* Toggle Button */}
@@ -562,6 +616,138 @@ export default function DesktopSidebar({
                   </AnimatePresence>
                 </div>
               )}
+
+              {/* ADMIN SECTION - Only show for ADMIN or SUPERADMIN */}
+              {(isAdmin || isSuperAdmin) && (
+                <div className="mb-1">
+                  <button
+                    onClick={() => setDashboardExpanded(!dashboardExpanded)}
+                    className="group flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
+                  >
+                    <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
+                      Admin
+                    </span>
+                    {dashboardExpanded ? (
+                      <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+                    ) : (
+                      <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+                    )}
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {dashboardExpanded && (
+                      <motion.div
+                        initial="closed"
+                        animate="open"
+                        exit="closed"
+                        variants={sectionVariants}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="space-y-0.5 mt-1">
+                          {adminLinks.map((link) => {
+                            const Icon = link.icon;
+                            const active = isActive(link.href);
+                            return (
+                              <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
+                                  active
+                                    ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.12] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
+                                    : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
+                                }`}
+                              >
+                                {active && (
+                                  <span
+                                    className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`}
+                                  />
+                                )}
+                                <Icon
+                                  className={`h-4 w-4 flex-shrink-0 ${
+                                    active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
+                                  }`}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <span className="font-medium">{link.label}</span>
+                                  <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">
+                                    {link.description}
+                                  </p>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              {/* SUPERADMIN SECTION - Only show for SUPERADMIN */}
+              {isSuperAdmin && (
+                <div className="mb-1">
+                  <button
+                    onClick={() => setDashboardExpanded(!dashboardExpanded)}
+                    className="group flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
+                  >
+                    <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
+                      Super Admin
+                    </span>
+                    {dashboardExpanded ? (
+                      <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+                    ) : (
+                      <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+                    )}
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {dashboardExpanded && (
+                      <motion.div
+                        initial="closed"
+                        animate="open"
+                        exit="closed"
+                        variants={sectionVariants}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="space-y-0.5 mt-1">
+                          {superAdminLinks.map((link) => {
+                            const Icon = link.icon;
+                            const active = isActive(link.href);
+                            return (
+                              <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
+                                  active
+                                    ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.12] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
+                                    : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
+                                }`}
+                              >
+                                {active && (
+                                  <span
+                                    className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`}
+                                  />
+                                )}
+                                <Icon
+                                  className={`h-4 w-4 flex-shrink-0 ${
+                                    active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
+                                  }`}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <span className="font-medium">{link.label}</span>
+                                  <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">
+                                    {link.description}
+                                  </p>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
             </div>
 
             {/* User Section */}
@@ -701,6 +887,7 @@ export default function DesktopSidebar({
               </div>
             </div>
 
+            {/* Main Links */}
             {mainLinks.map((link) => {
               const Icon = link.icon;
               const active = isActive(link.href);
@@ -722,6 +909,7 @@ export default function DesktopSidebar({
               );
             })}
 
+            {/* Dashboard Link - Only if authenticated */}
             {isAuthenticated && (
               <Link
                 href="/dashboard"
@@ -734,6 +922,40 @@ export default function DesktopSidebar({
                 <LayoutDashboard className="h-5 w-5" />
                 <span className="absolute left-full ml-3 px-2 py-1 bg-stone-900 dark:bg-[#22252E] text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
                   Dashboard
+                </span>
+              </Link>
+            )}
+
+            {/* Admin Link - Only if ADMIN or SUPERADMIN */}
+            {(isAdmin || isSuperAdmin) && (
+              <Link
+                href="/admin"
+                className={`group relative flex items-center justify-center rounded-xl w-11 h-11 transition-all duration-200 ${
+                  isActive('/admin')
+                    ? 'bg-[#1B2A56]/10 dark:bg-[#1B2A56]/15 text-[#1B2A56] dark:text-[#8CA0DE]'
+                    : 'text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-white/5 hover:text-stone-700 dark:hover:text-stone-300'
+                }`}
+              >
+                <Shield className="h-5 w-5" />
+                <span className="absolute left-full ml-3 px-2 py-1 bg-stone-900 dark:bg-[#22252E] text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                  Admin
+                </span>
+              </Link>
+            )}
+
+            {/* Super Admin Link - Only if SUPERADMIN */}
+            {isSuperAdmin && (
+              <Link
+                href="/super"
+                className={`group relative flex items-center justify-center rounded-xl w-11 h-11 transition-all duration-200 ${
+                  isActive('/super')
+                    ? 'bg-[#1B2A56]/10 dark:bg-[#1B2A56]/15 text-[#1B2A56] dark:text-[#8CA0DE]'
+                    : 'text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-white/5 hover:text-stone-700 dark:hover:text-stone-300'
+                }`}
+              >
+                <ShieldCheck className="h-5 w-5" />
+                <span className="absolute left-full ml-3 px-2 py-1 bg-stone-900 dark:bg-[#22252E] text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                  Super Admin
                 </span>
               </Link>
             )}

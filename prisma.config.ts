@@ -1,11 +1,11 @@
 // prisma.config.ts
-import { defineConfig } from 'prisma/config'
 import 'dotenv/config'
 
-export default defineConfig({
+export default {
   datasource: {
-    url: process.env.DATABASE_URL!,
-    // @ts-ignore - directUrl is valid for Supabase connection pooler
-    directUrl: process.env.DIRECT_URL,
+    // ✅ Use DIRECT_URL for all Prisma CLI commands
+    url: process.env.DIRECT_URL!,
   },
-})
+  // Optional: Keep DATABASE_URL for your app
+  // Your app will still use DATABASE_URL via prisma.ts
+}

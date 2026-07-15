@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import Image from 'next/image'
+import { ProfileSkeleton } from './ui/ProfileSkeleton'  // ✅ Import skeleton
 
 interface UserProfile {
   id: string
@@ -66,7 +67,7 @@ export default function ProfilePage() {
 
   const commonSkills = ['React', 'TypeScript', 'Next.js', 'Vue', 'Python', 'Node.js', 'Django', 'Go', 'Rust', 'Swift', 'GraphQL', 'MongoDB', 'PostgreSQL']
 
-  // Load user profile data - no real-time subscription
+  // Load user profile data
   useEffect(() => {
     if (status === 'authenticated' && user) {
       fetchProfile()
@@ -252,17 +253,12 @@ export default function ProfilePage() {
     setFormData({ ...formData, skills: formData.skills.filter(s => s !== skill) })
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
-          <p className="text-slate-600 font-medium">Loading your profile...</p>
-        </div>
-      </div>
-    )
+  // ✅ Use skeleton while loading
+  if (loading || status === 'loading') {
+    return <ProfileSkeleton />
   }
 
+  // ✅ Show actual content
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
       {/* Back Button */}

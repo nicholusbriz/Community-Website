@@ -4,7 +4,7 @@
 import { useSession, signIn, signOut } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { AuthState, AuthUser } from "./types"
-import { hasRole, hasExactRole, isAdmin, isSuperAdmin, isMeteor, UserRole } from "./roles"
+import { hasRole, hasExactRole, isAdmin, isSuperAdmin, isMentor, isStudent, isUser, UserRole } from "./roles"
 
 // Centralized auth hook that all components will use
 export function useAuth(): AuthState {
@@ -122,8 +122,16 @@ export function useAuth(): AuthState {
       return isSuperAdmin(user?.role)
     },
     
-    isMeteor(): boolean {
-      return isMeteor(user?.role)
+    isMentor(): boolean {
+      return isMentor(user?.role)
+    },
+    
+    isStudent(): boolean {
+      return isStudent(user?.role)
+    },
+    
+    isUser(): boolean {
+      return isUser(user?.role)
     },
     
     isAuthenticated(): boolean {

@@ -74,7 +74,7 @@ export const authOptions: NextAuthOptions = {
           const userRole = await prisma.role.findUnique({
             where: { name: 'USER' }
           })
-          
+
           if (!userRole) {
             throw new Error("USER role not found in database. Please run seed first.")
           }

@@ -1,10 +1,10 @@
 // app/lib/auth/roles.ts
-// Centralized role hierarchy and utilities (database-driven - NO FALLBACK)
+// Simple role checking - exact role matching only (no hierarchy)
 
 export type UserRole = string  // Dynamic roles from database
 
-// Cache for role hierarchy (will be populated from database)
-let roleCache: Map<string, number> | null = null
+// Cache for available roles (will be populated from database)
+let roleCache: Set<string> | null = null
 
 /**
  * Initialize role cache from database
@@ -16,82 +16,72 @@ export async function initializeRoleCache(prisma: any) {
   if (roles.length === 0) {
     throw new Error('No roles found in database. Please run seed script first.')
   }
-  roleCache = new Map(roles.map((r: any) => [r.name, r.level]))
-  console.log('✅ Role cache initialized with', roles.length, 'roles')
+  roleCache = new Set(roles.map((r: any) => r.name))
+  console.log('✅ Role cache initialized with', roles.length, 'roles:', Array.from(roleCache))
 }
 
 /**
- * Get role level from cache
- * Returns 0 if role not found or cache not initialized
- */
-function getRoleLevel(roleName: string | undefined | null): number {
-  if (!roleName || !roleCache) return 0
-  return roleCache.get(roleName) ?? 0
-}
-
-/**
- * Check if user has required role or higher (using database hierarchy)
+ * Check if user has specific role (exact match only)
  * @param userRole - User's current role name
- * @param requiredRole - Minimum role name required
+ * @param requiredRole - Required role name
  * @returns boolean
  */
 export function hasRole(userRole: UserRole | string | undefined | null, requiredRole: string): boolean {
-  if (!userRole) return false
-  
-  const userLevel = getRoleLevel(userRole)
-  const requiredLevel = getRoleLevel(requiredRole)
-  
-  return userLevel >= requiredLevel
+  return userRole === requiredRole
 }
 
 /**
- * Check if user has specific role (exact match)
+ * Check if user has specific role (exact match) - alias for hasRole
  */
 export function hasExactRole(userRole: UserRole | string | undefined | null, requiredRole: string): boolean {
   return userRole === requiredRole
 }
 
 /**
- * Check if user is admin or higher (ADMIN, SUPERADMIN, or any role with level >= 3)
+ * Check if user is admin (exact match)
  */
 export function isAdmin(userRole: UserRole | string | undefined | null): boolean {
-  return getRoleLevel(userRole) >= 3
+  return userRole === 'ADMIN'
 }
 
 /**
- * Check if user is superadmin or higher (SUPERADMIN or any role with level >= 4)
+ * Check if user is superadmin (exact match)
  */
 export function isSuperAdmin(userRole: UserRole | string | undefined | null): boolean {
-  return getRoleLevel(userRole) >= 4
+  return userRole === 'SUPERADMIN'
 }
 
 /**
- * Check if user has meteor role or higher (level >= 5)
+ * Check if user is mentor (exact match)
  */
-export function isMeteor(userRole: UserRole | string | undefined | null): boolean {
-  return getRoleLevel(userRole) >= 5
+export function isMentor(userRole: UserRole | string | undefined | null): boolean {
+  return userRole === 'MENTOR'
 }
 
 /**
- * Get all roles that can access a given role level
+ * Check if user is student (exact match)
  */
-export async function getAllowedRoles(prisma: any, requiredRole: string): Promise<string[]> {
-  const role = await prisma.role.findUnique({
-    where: { name: requiredRole }
-  })
-  
-  if (!role) return []
-  
-  const roles = await prisma.role.findMany({
-    where: {
-      level: {
-        gte: role.level
-      }
-    },
-    orderBy: {
-      level: 'asc'
-    }
-  })
-  
-  return roles.map((r: any) => r.name)
+export function isStudent(userRole: UserRole | string | undefined | null): boolean {
+  return userRole === 'STUDENT'
+}
+
+/**
+ * Check if user is regular user (exact match)
+ */
+export function isUser(userRole: UserRole | string | undefined | null): boolean {
+  return userRole === 'USER'
+}
+
+/**
+ * Check if a role exists in the database
+ */
+export function roleExists(roleName: string): boolean {
+  return roleCache ? roleCache.has(roleName) : false
+}
+
+/**
+ * Get all available roles from cache
+ */
+export function getAllRoles(): string[] {
+  return roleCache ? Array.from(roleCache) : []
 }
