@@ -1,28 +1,26 @@
-# 📋 Project Commands Reference
-
-## Database Commands
-
-### 1. Push Schema to Database
-Push your Prisma schema to the database without creating migrations.
-```bash
-npm run db:push
-
-Generate the Prisma Client based on your schema.
-
-bash
+# Generate Prisma Client
 npm run db:generate
 
-est if your database connection is working properly.
+# Push schema to database (no migrations)
+npm run db:push
 
-bash
-npm run test:db
+# Create and apply migrations
+npm run db:migrate
 
-Open Prisma Studio to view and edit your database visually.
-
-bash
+# Open Prisma Studio
 npm run db:studio
 
-Create a migration file for version control.
+# Seed the database
+npm run db:seed
 
-bash
-npm run db:migrate
+# Pull schema from database
+npm run db:pull
+
+# Format schema file
+npm run db:format
+
+# Reset database (dangerous!)
+npm run db:reset
+
+# Deploy migrations to production
+npm run db:deploy

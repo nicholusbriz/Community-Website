@@ -50,7 +50,9 @@ export interface AuthState {
     hasExactRole: (role: string) => boolean
     isAdmin: () => boolean
     isSuperAdmin: () => boolean
-    isMeteor: () => boolean
+    isMentor: () => boolean
+    isStudent: () => boolean
+    isUser: () => boolean
     isAuthenticated: () => boolean
     getUserRole: () => UserRole | null
     getUserRoleId: () => string | null

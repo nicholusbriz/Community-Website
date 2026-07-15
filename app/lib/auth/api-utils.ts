@@ -12,7 +12,7 @@ export interface AuthUser {
   roleId: string
   image: string | null
   username: string | null
-  roleLevel: number
+  // ✅ Removed roleLevel - not in schema
 }
 
 export interface AuthContext {
@@ -20,11 +20,11 @@ export interface AuthContext {
   userId: string
   role: string
   roleId: string
-  roleLevel: number
+  // ✅ Removed roleLevel - not in schema
   token: any
   isAdmin: boolean
   isSuperAdmin: boolean
-  hasRole: (role: UserRole) => boolean
+  hasRole: (role: string) => boolean  // ✅ Accepts string
 }
 
 /**
@@ -59,7 +59,6 @@ export async function getAuthUser(request: Request): Promise<AuthContext> {
   }
 
   const userRole = user.role.name
-  const roleLevel = user.role.level
 
   return {
     user: {
@@ -70,16 +69,14 @@ export async function getAuthUser(request: Request): Promise<AuthContext> {
       roleId: user.roleId,
       image: user.image,
       username: user.username,
-      roleLevel: roleLevel,
     },
     userId: user.id,
     role: userRole,
     roleId: user.roleId,
-    roleLevel: roleLevel,
     token,
     isAdmin: isAdmin(userRole),
     isSuperAdmin: isSuperAdmin(userRole),
-    hasRole: (requiredRole: UserRole) => hasRole(userRole, requiredRole),
+    hasRole: (requiredRole: string) => hasRole(userRole, requiredRole),
   }
 }
 
@@ -96,10 +93,10 @@ export async function getAuthUserSafe(request: Request): Promise<AuthContext | n
 }
 
 /**
- * Require a specific role
+ * Require a specific role (exact match)
  * @throws {Error} If user doesn't have the required role
  */
-export async function requireRole(request: Request, requiredRole: UserRole): Promise<AuthContext> {
+export async function requireRole(request: Request, requiredRole: string): Promise<AuthContext> {
   const auth = await getAuthUser(request)
   
   if (!auth.hasRole(requiredRole)) {
@@ -110,7 +107,7 @@ export async function requireRole(request: Request, requiredRole: UserRole): Pro
 }
 
 /**
- * Require SUPERADMIN role
+ * Require SUPERADMIN role (exact match)
  * @throws {Error} If user is not SUPERADMIN
  */
 export async function requireSuperAdmin(request: Request): Promise<AuthContext> {
@@ -124,14 +121,28 @@ export async function requireSuperAdmin(request: Request): Promise<AuthContext> 
 }
 
 /**
- * Require ADMIN or SUPERADMIN role
- * @throws {Error} If user is not ADMIN or SUPERADMIN
+ * Require ADMIN role (exact match)
+ * @throws {Error} If user is not ADMIN
  */
 export async function requireAdmin(request: Request): Promise<AuthContext> {
   const auth = await getAuthUser(request)
   
   if (!auth.isAdmin) {
     throw new Error('Forbidden: ADMIN role required')
+  }
+  
+  return auth
+}
+
+/**
+ * Require ADMIN or SUPERADMIN (exact matches only)
+ * @throws {Error} If user is not ADMIN or SUPERADMIN
+ */
+export async function requireAdminOrSuperAdmin(request: Request): Promise<AuthContext> {
+  const auth = await getAuthUser(request)
+  
+  if (!auth.isAdmin && !auth.isSuperAdmin) {
+    throw new Error('Forbidden: ADMIN or SUPERADMIN role required')
   }
   
   return auth
