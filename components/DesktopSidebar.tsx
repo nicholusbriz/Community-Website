@@ -41,7 +41,17 @@ import {
   MapPin,
   Briefcase,
   Award,
-  Globe
+  Globe,
+  ListTodo,
+  Bell,
+  FolderOpen,
+  GitBranch,
+  Code,
+  TrendingUp,
+  UserPlus,
+  CheckCircle,
+  Clock,
+  Archive
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -57,9 +67,7 @@ interface DesktopSidebarProps {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Brand tokens — "Sunrise" identity: amber → coral → plum.
-// Each accent below is drawn from one stop of the same gradient,
-// so every color used across the sidebar traces back to the mark.
+// Brand tokens — "Sunrise" identity
 // ─────────────────────────────────────────────────────────────
 const BRAND_GRADIENT = 'from-[#0B0F1A] via-[#16223F] to-[#1B2A56]';
 const ACCENT = {
@@ -80,125 +88,98 @@ export default function DesktopSidebar({
   const isAuthenticated = status === 'authenticated';
   const userRole = user?.role || 'USER';
 
-  // ✅ Simply use user.image from the session - no real-time logic
   const avatarUrl = user?.image || null;
 
+  // Section expanded states
   const [mainExpanded, setMainExpanded] = useState(true);
   const [exploreExpanded, setExploreExpanded] = useState(true);
   const [dashboardExpanded, setDashboardExpanded] = useState(true);
-  const [resourcesExpanded, setResourcesExpanded] = useState(true);
-  const [communityExpanded, setCommunityExpanded] = useState(true);
-  const [getInvolvedExpanded, setGetInvolvedExpanded] = useState(true);
+  const [adminExpanded, setAdminExpanded] = useState(true);
+  const [superAdminExpanded, setSuperAdminExpanded] = useState(true);
 
   const handleSignOut = async () => {
     await actions.signOutUser();
   };
 
   // ============================================================
-  // 📋 NAVIGATION CONFIGURATION - All routes from proxy
+  // 📋 NAVIGATION CONFIGURATION
   // ============================================================
 
-  // 1️⃣ MAIN NAVIGATION - Public Routes
+  // 1️⃣ PUBLIC NAVIGATION (Visible to everyone)
   const mainLinks = [
     { href: '/', label: 'Home', icon: Home, description: 'Dashboard overview' },
     { href: '/about', label: 'About', icon: Info, description: 'Learn about us' },
-    { href: '/programs', label: 'Programs', icon: FolderGit2, description: 'Learning tracks' },
-    { href: '/resources', label: 'Resources', icon: BookOpen, description: 'Knowledge hub' },
     { href: '/developers', label: 'Developers', icon: Users, description: 'Community members' },
+    { href: '/projects', label: 'Projects', icon: FolderGit2, description: 'All projects' },
   ];
 
-  // 2️⃣ EXPLORE GROUPS - Public/Public Routes
-  const navGroups = [
-    {
-      key: 'resources',
-      label: 'Resources',
-      icon: BookOpen,
-      description: 'Learn and grow',
-      accent: ACCENT.amber,
-      expanded: resourcesExpanded,
-      setExpanded: setResourcesExpanded,
-      items: [
-        { href: '/blog', label: 'Blog', icon: MessageSquareQuote, description: 'Latest posts' },
-        { href: '/gallery', label: 'Gallery', icon: FolderGit2, description: 'Visual stories' },
-        { href: '/testimonials', label: 'Testimonials', icon: MessageSquareQuote, description: 'Member stories' },
-      ],
-    },
-    {
-      key: 'community',
-      label: 'Community',
-      icon: Users,
-      description: 'Connect and engage',
-      accent: ACCENT.teal,
-      expanded: communityExpanded,
-      setExpanded: setCommunityExpanded,
-      items: [
-        { href: '/community', label: 'Community Hub', icon: Users, description: 'Main space' },
-        { href: '/events', label: 'Events', icon: CalendarDays, description: 'Upcoming', badge: 'Live' },
-        { href: '/mentors', label: 'Mentors', icon: Users, description: 'Find mentors' },
-        { href: '/projects', label: 'Projects', icon: FolderGit2, description: 'All projects' },
-      ],
-    },
-    {
-      key: 'getInvolved',
-      label: 'Get Involved',
-      icon: Sparkles,
-      description: 'Make an impact',
-      accent: ACCENT.plum,
-      expanded: getInvolvedExpanded,
-      setExpanded: setGetInvolvedExpanded,
-      items: [
-        { href: '/join', label: 'Join Us', icon: Users, description: 'Become a member' },
-        { href: '/faq', label: 'FAQ', icon: HelpCircle, description: 'Common questions' },
-        { href: '/contact', label: 'Contact', icon: MapPin, description: 'Get in touch' },
-      ],
-    },
+  // 2️⃣ EXPLORE (Public)
+  const exploreItems = [
+    { href: '/community', label: 'Community Hub', icon: Users, description: 'Main space' },
+    { href: '/events', label: 'Events', icon: CalendarDays, description: 'Upcoming', badge: 'Live' },
+    { href: '/mentors', label: 'Mentors', icon: GraduationCap, description: 'Find mentors' },
+    { href: '/developers', label: 'Developers', icon: Users, description: 'Meet developers' },
   ];
 
-  // 3️⃣ DASHBOARD LINKS - Protected Routes (Any authenticated user)
+  // 3️⃣ GET INVOLVED (Public)
+  const getInvolvedItems = [
+    { href: '/join', label: 'Join Us', icon: UserPlus, description: 'Become a member' },
+    { href: '/faq', label: 'FAQ', icon: HelpCircle, description: 'Common questions' },
+    { href: '/contact', label: 'Contact', icon: MapPin, description: 'Get in touch' },
+  ];
+
+  // 4️⃣ DASHBOARD NAVIGATION (Authenticated users)
   const dashboardLinks = [
-    { href: '/dashboard', label: 'Dashboard Home', icon: LayoutDashboard, description: 'Overview' },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Overview' },
     { href: '/dashboard/projects', label: 'My Projects', icon: FolderKanban, description: 'Your projects' },
-    { href: '/dashboard/projects/new', label: 'Create Project', icon: Plus, description: 'Start new', badge: 'New' },
-    { href: '/dashboard/saved', label: 'Saved Projects', icon: Star, description: 'Bookmarked' },
+    { href: '/dashboard/tasks', label: 'My Tasks', icon: ListTodo, description: 'Assigned tasks' },
     { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, description: 'Inbox', badge: '3' },
-    { href: '/dashboard/profile', label: 'My Profile', icon: User, description: 'Your info' },
+    { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, description: 'Updates', badge: '5' },
+    { href: '/dashboard/profile', label: 'Profile', icon: User, description: 'Your info' },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings, description: 'Preferences' },
   ];
 
-  // 4️⃣ ADMIN LINKS - Admin Routes (ADMIN role only)
-  const adminLinks = [
-    { href: '/admin', label: 'Admin Dashboard', icon: Shield, description: 'Admin overview' },
-    { href: '/admin/users', label: 'Manage Users', icon: UsersIcon, description: 'User management' },
-    { href: '/admin/projects', label: 'Manage Projects', icon: FolderKanban, description: 'Project oversight' },
-    { href: '/admin/analytics', label: 'Analytics', icon: BarChart, description: 'Site analytics' },
+  // ✅ 5️⃣ PROJECT ACTIONS (Authenticated users) - FIXED: Changed from projectActionLinks to projectActions
+  const projectActions = [
+    { href: '/dashboard/projects/create', label: 'Create Project', icon: Plus, description: 'Start a new project' },
+    { href: '/dashboard/projects', label: 'Manage Projects', icon: FolderOpen, description: 'Manage your projects' },
   ];
 
-  // 5️⃣ SUPERADMIN LINKS - SuperAdmin Routes (SUPERADMIN role only)
+  // 6️⃣ ADMIN NAVIGATION (ADMIN or SUPERADMIN)
+  const adminLinks = [
+    { href: '/admin', label: 'Admin Dashboard', icon: Shield, description: 'Admin overview' },
+    { href: '/admin/projects', label: 'Manage Projects', icon: FolderKanban, description: 'Project oversight' },
+    { href: '/admin/users', label: 'Manage Users', icon: UsersIcon, description: 'User management' },
+    { href: '/admin/projects/analytics', label: 'Analytics', icon: BarChart, description: 'Site analytics' },
+    { href: '/admin/reports', label: 'Reports', icon: FileText, description: 'Platform reports' },
+  ];
+
+  // 7️⃣ SUPERADMIN NAVIGATION (SUPERADMIN only)
   const superAdminLinks = [
-    { href: '/super', label: 'Super Admin', icon: ShieldCheck, description: 'System overview' },
+    { href: '/super', label: 'Super Dashboard', icon: ShieldCheck, description: 'System overview' },
+    { href: '/super/projects', label: 'All Projects', icon: FolderGit2, description: 'Review all projects' },
+    { href: '/super/projects/review', label: 'Review Queue', icon: CheckCircle, description: 'Pending reviews' },
+    { href: '/super/projects/archive', label: 'Archived', icon: Archive, description: 'Archived projects' },
     { href: '/super/system', label: 'System Settings', icon: Server, description: 'System configuration' },
-    { href: '/super/database', label: 'Database', icon: Database, description: 'Database management' },
     { href: '/super/logs', label: 'Activity Logs', icon: Activity, description: 'System logs' },
   ];
 
-  // 6️⃣ QUICK LINKS - Based on auth status and role
+  // 8️⃣ QUICK LINKS - Based on auth status and role
   const quickLinks = isAuthenticated
     ? [
         { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', accent: ACCENT.coral },
         { icon: Calendar, label: 'Events', href: '/events', accent: ACCENT.amber },
         { icon: GraduationCap, label: 'Mentors', href: '/mentors', accent: ACCENT.teal },
         { icon: FolderGit2, label: 'Projects', href: '/projects', accent: ACCENT.plum },
-        // ✅ Show admin quick link for ADMIN users
-        ...(userRole === 'ADMIN' ? [
+        ...(userRole === 'ADMIN' || userRole === 'SUPERADMIN' ? [
           { icon: Shield, label: 'Admin', href: '/admin', accent: ACCENT.coral },
         ] : []),
-        // ✅ Show super admin quick link for SUPERADMIN users
         ...(userRole === 'SUPERADMIN' ? [
           { icon: ShieldCheck, label: 'Super', href: '/super', accent: ACCENT.coral },
         ] : []),
       ]
     : [
-        { icon: Users, label: 'Login', href: '/login', accent: ACCENT.coral },
+        { icon: User, label: 'Login', href: '/login', accent: ACCENT.coral },
         { icon: Calendar, label: 'Events', href: '/events', accent: ACCENT.amber },
         { icon: GraduationCap, label: 'Mentors', href: '/mentors', accent: ACCENT.teal },
         { icon: FolderGit2, label: 'Projects', href: '/projects', accent: ACCENT.plum },
@@ -210,24 +191,22 @@ export default function DesktopSidebar({
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === href;
-    if (href === '/dashboard') return pathname === '/dashboard';
-    if (href === '/admin') return pathname === '/admin';
-    if (href === '/super') return pathname === '/super';
+    if (href === '/dashboard') return pathname === href || pathname.startsWith('/dashboard/');
+    if (href === '/admin') return pathname === href || pathname.startsWith('/admin/');
+    if (href === '/super') return pathname === href || pathname.startsWith('/super/');
+    if (href === '/projects') return pathname === href || pathname.startsWith('/projects/');
     return pathname.startsWith(href);
   };
 
-  // Check if user has admin role
-  const isAdmin = userRole === 'ADMIN';
+  const isAdmin = userRole === 'ADMIN' || userRole === 'SUPERADMIN';
   const isSuperAdmin = userRole === 'SUPERADMIN';
 
-  // Get user initials for avatar from centralized auth
   const getUserInitials = () => {
     if (user?.name) return user.name.charAt(0).toUpperCase();
     if (user?.email) return user.email.charAt(0).toUpperCase();
     return 'U';
   };
 
-  // Get user display name from centralized auth
   const getUserName = () => {
     if (user?.name) return user.name;
     if (user?.email) return user.email.split('@')[0];
@@ -244,6 +223,60 @@ export default function DesktopSidebar({
     open: { opacity: 1, height: 'auto' },
     closed: { opacity: 0, height: 0 },
   };
+
+  // Navigation item renderer
+  const NavItem = ({ href, label, icon: Icon, description, badge, active }: any) => (
+    <Link
+      href={href}
+      className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
+        active
+          ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.12] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
+          : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
+      }`}
+    >
+      {active && (
+        <span className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`} />
+      )}
+      <Icon
+        className={`h-4 w-4 flex-shrink-0 ${
+          active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
+        }`}
+      />
+      <div className="flex-1 min-w-0">
+        <span className="font-medium">{label}</span>
+        {description && (
+          <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">{description}</p>
+        )}
+      </div>
+      {badge && (
+        <span
+          className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+            badge === 'New' || badge === 'Live'
+              ? 'bg-[#1B2A56]/10 dark:bg-[#1B2A56]/20 text-[#1B2A56] dark:text-[#8CA0DE]'
+              : 'text-white bg-gradient-to-r ' + BRAND_GRADIENT
+          }`}
+        >
+          {badge}
+        </span>
+      )}
+    </Link>
+  );
+
+  const SectionHeader = ({ label, expanded, toggle }: any) => (
+    <button
+      onClick={toggle}
+      className="group flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
+    >
+      <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
+        {label}
+      </span>
+      {expanded ? (
+        <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+      ) : (
+        <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+      )}
+    </button>
+  );
 
   return (
     <div className="hidden lg:flex h-screen fixed top-0 left-0 z-[100]">
@@ -293,7 +326,7 @@ export default function DesktopSidebar({
               </div>
             </div>
 
-            {/* Hero Section - Hide when authenticated */}
+            {/* Hero Section */}
             {!isAuthenticated && (
               <div className="px-5 pt-4">
                 <div
@@ -375,19 +408,7 @@ export default function DesktopSidebar({
             <div className="px-3 py-4 space-y-1">
               {/* MAIN SECTION */}
               <div className="mb-1">
-                <button
-                  onClick={() => setMainExpanded(!mainExpanded)}
-                  className="group flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-                >
-                  <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
-                    Main
-                  </span>
-                  {mainExpanded ? (
-                    <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                  )}
-                </button>
+                <SectionHeader label="Main" expanded={mainExpanded} toggle={() => setMainExpanded(!mainExpanded)} />
                 <AnimatePresence initial={false}>
                   {mainExpanded && (
                     <motion.div
@@ -399,38 +420,9 @@ export default function DesktopSidebar({
                       className="overflow-hidden"
                     >
                       <div className="space-y-0.5 mt-1">
-                        {mainLinks.map((link) => {
-                          const Icon = link.icon;
-                          const active = isActive(link.href);
-                          return (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
-                                active
-                                  ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.12] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
-                                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
-                              }`}
-                            >
-                              {active && (
-                                <span
-                                  className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`}
-                                />
-                              )}
-                              <Icon
-                                className={`h-4 w-4 flex-shrink-0 ${
-                                  active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                                }`}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <span className="font-medium">{link.label}</span>
-                                <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">
-                                  {link.description}
-                                </p>
-                              </div>
-                            </Link>
-                          );
-                        })}
+                        {mainLinks.map((link) => (
+                          <NavItem key={link.href} {...link} active={isActive(link.href)} />
+                        ))}
                       </div>
                     </motion.div>
                   )}
@@ -439,19 +431,7 @@ export default function DesktopSidebar({
 
               {/* EXPLORE SECTION */}
               <div className="mb-1">
-                <button
-                  onClick={() => setExploreExpanded(!exploreExpanded)}
-                  className="group flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-                >
-                  <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
-                    Explore
-                  </span>
-                  {exploreExpanded ? (
-                    <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                  )}
-                </button>
+                <SectionHeader label="Explore" expanded={exploreExpanded} toggle={() => setExploreExpanded(!exploreExpanded)} />
                 <AnimatePresence initial={false}>
                   {exploreExpanded && (
                     <motion.div
@@ -463,99 +443,40 @@ export default function DesktopSidebar({
                       className="overflow-hidden"
                     >
                       <div className="space-y-0.5 mt-1">
-                        {navGroups.map((group) => {
-                          const Icon = group.icon;
-                          const active = group.items.some((item) => isActive(item.href));
-
-                          return (
-                            <div key={group.key} className="mb-0.5">
-                              <button
-                                onClick={() => group.setExpanded(!group.expanded)}
-                                className="group w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-                              >
-                                <div
-                                  className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${
-                                    active ? `${group.accent.soft} ${group.accent.softDark}` : 'text-stone-400 dark:text-stone-500'
-                                  }`}
-                                >
-                                  <Icon
-                                    className={`h-3.5 w-3.5 ${
-                                      active ? `${group.accent.text} ${group.accent.darkText}` : 'text-stone-400 dark:text-stone-500'
-                                    }`}
-                                  />
-                                </div>
-                                <div className="flex-1 text-left min-w-0">
-                                  <span
-                                    className={`font-medium ${
-                                      active ? 'text-stone-900 dark:text-white' : 'text-stone-600 dark:text-stone-300'
-                                    }`}
-                                  >
-                                    {group.label}
-                                  </span>
-                                  <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">
-                                    {group.description}
-                                  </p>
-                                </div>
-                                {group.expanded ? (
-                                  <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500 flex-shrink-0" />
-                                ) : (
-                                  <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500 flex-shrink-0" />
-                                )}
-                              </button>
-                              {group.expanded && (
-                                <div className="ml-3 pl-4 space-y-0.5 mt-0.5 border-l border-stone-200 dark:border-white/10">
-                                  {group.items.map((link) => {
-                                    const LinkIcon = link.icon;
-                                    const itemActive = isActive(link.href);
-                                    return (
-                                      <Link
-                                        key={link.href}
-                                        href={link.href}
-                                        className={`group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-all duration-200 ${
-                                          itemActive
-                                            ? `${group.accent.text} ${group.accent.darkText} font-medium ${group.accent.soft} ${group.accent.softDark}`
-                                            : 'text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-white/5 hover:text-stone-800 dark:hover:text-white'
-                                        }`}
-                                      >
-                                        <LinkIcon className="h-3.5 w-3.5 flex-shrink-0" />
-                                        <span className="flex-1 truncate">{link.label}</span>
-                                        {link.badge && (
-                                          <span
-                                            className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full text-white bg-gradient-to-r ${BRAND_GRADIENT}`}
-                                          >
-                                            {link.badge}
-                                          </span>
-                                        )}
-                                      </Link>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                        {exploreItems.map((link) => (
+                          <NavItem key={link.href} {...link} active={isActive(link.href)} />
+                        ))}
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
+              {/* GET INVOLVED */}
+              <div className="mb-1">
+                <div className="space-y-0.5 mt-1">
+                  {getInvolvedItems.map((link) => (
+                    <NavItem key={link.href} {...link} active={isActive(link.href)} />
+                  ))}
+                </div>
+              </div>
+
+              {/* ✅ PROJECT ACTIONS - Only when authenticated (FIXED: uses projectActions) */}
+              {isAuthenticated && (
+                <div className="mb-2">
+                  <div className="space-y-0.5">
+                    {projectActions.map((link) => (
+                      <NavItem key={link.href} {...link} active={isActive(link.href)} />
+                    ))}
+                  </div>
+                  <div className="mx-3 my-2 border-t border-stone-200 dark:border-white/10" />
+                </div>
+              )}
+
               {/* DASHBOARD SECTION - Only show when authenticated */}
               {isAuthenticated && (
                 <div className="mb-1">
-                  <button
-                    onClick={() => setDashboardExpanded(!dashboardExpanded)}
-                    className="group flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-                  >
-                    <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
-                      Dashboard
-                    </span>
-                    {dashboardExpanded ? (
-                      <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                    ) : (
-                      <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                    )}
-                  </button>
+                  <SectionHeader label="Dashboard" expanded={dashboardExpanded} toggle={() => setDashboardExpanded(!dashboardExpanded)} />
                   <AnimatePresence initial={false}>
                     {dashboardExpanded && (
                       <motion.div
@@ -567,49 +488,9 @@ export default function DesktopSidebar({
                         className="overflow-hidden"
                       >
                         <div className="space-y-0.5 mt-1">
-                          {dashboardLinks.map((link) => {
-                            const Icon = link.icon;
-                            const active = isActive(link.href);
-                            return (
-                              <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
-                                  active
-                                    ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.12] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
-                                    : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
-                                }`}
-                              >
-                                {active && (
-                                  <span
-                                    className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`}
-                                  />
-                                )}
-                                <Icon
-                                  className={`h-4 w-4 flex-shrink-0 ${
-                                    active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                                  }`}
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <span className="font-medium">{link.label}</span>
-                                  <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">
-                                    {link.description}
-                                  </p>
-                                </div>
-                                {link.badge && (
-                                  <span
-                                    className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                                      link.badge === 'New'
-                                        ? 'bg-[#1B2A56]/10 dark:bg-[#1B2A56]/20 text-[#1B2A56] dark:text-[#8CA0DE]'
-                                        : 'text-white bg-gradient-to-r ' + BRAND_GRADIENT
-                                    }`}
-                                  >
-                                    {link.badge}
-                                  </span>
-                                )}
-                              </Link>
-                            );
-                          })}
+                          {dashboardLinks.map((link) => (
+                            <NavItem key={link.href} {...link} active={isActive(link.href)} />
+                          ))}
                         </div>
                       </motion.div>
                     )}
@@ -617,24 +498,12 @@ export default function DesktopSidebar({
                 </div>
               )}
 
-              {/* ADMIN SECTION - Only show for ADMIN or SUPERADMIN */}
+              {/* ADMIN SECTION - ADMIN or SUPERADMIN */}
               {(isAdmin || isSuperAdmin) && (
                 <div className="mb-1">
-                  <button
-                    onClick={() => setDashboardExpanded(!dashboardExpanded)}
-                    className="group flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-                  >
-                    <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
-                      Admin
-                    </span>
-                    {dashboardExpanded ? (
-                      <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                    ) : (
-                      <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                    )}
-                  </button>
+                  <SectionHeader label="Admin" expanded={adminExpanded} toggle={() => setAdminExpanded(!adminExpanded)} />
                   <AnimatePresence initial={false}>
-                    {dashboardExpanded && (
+                    {adminExpanded && (
                       <motion.div
                         initial="closed"
                         animate="open"
@@ -644,38 +513,9 @@ export default function DesktopSidebar({
                         className="overflow-hidden"
                       >
                         <div className="space-y-0.5 mt-1">
-                          {adminLinks.map((link) => {
-                            const Icon = link.icon;
-                            const active = isActive(link.href);
-                            return (
-                              <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
-                                  active
-                                    ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.12] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
-                                    : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
-                                }`}
-                              >
-                                {active && (
-                                  <span
-                                    className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`}
-                                  />
-                                )}
-                                <Icon
-                                  className={`h-4 w-4 flex-shrink-0 ${
-                                    active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                                  }`}
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <span className="font-medium">{link.label}</span>
-                                  <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">
-                                    {link.description}
-                                  </p>
-                                </div>
-                              </Link>
-                            );
-                          })}
+                          {adminLinks.map((link) => (
+                            <NavItem key={link.href} {...link} active={isActive(link.href)} />
+                          ))}
                         </div>
                       </motion.div>
                     )}
@@ -683,24 +523,12 @@ export default function DesktopSidebar({
                 </div>
               )}
 
-              {/* SUPERADMIN SECTION - Only show for SUPERADMIN */}
+              {/* SUPERADMIN SECTION - SUPERADMIN only */}
               {isSuperAdmin && (
                 <div className="mb-1">
-                  <button
-                    onClick={() => setDashboardExpanded(!dashboardExpanded)}
-                    className="group flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-                  >
-                    <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
-                      Super Admin
-                    </span>
-                    {dashboardExpanded ? (
-                      <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                    ) : (
-                      <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                    )}
-                  </button>
+                  <SectionHeader label="Super Admin" expanded={superAdminExpanded} toggle={() => setSuperAdminExpanded(!superAdminExpanded)} />
                   <AnimatePresence initial={false}>
-                    {dashboardExpanded && (
+                    {superAdminExpanded && (
                       <motion.div
                         initial="closed"
                         animate="open"
@@ -710,38 +538,9 @@ export default function DesktopSidebar({
                         className="overflow-hidden"
                       >
                         <div className="space-y-0.5 mt-1">
-                          {superAdminLinks.map((link) => {
-                            const Icon = link.icon;
-                            const active = isActive(link.href);
-                            return (
-                              <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
-                                  active
-                                    ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.12] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
-                                    : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
-                                }`}
-                              >
-                                {active && (
-                                  <span
-                                    className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`}
-                                  />
-                                )}
-                                <Icon
-                                  className={`h-4 w-4 flex-shrink-0 ${
-                                    active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                                  }`}
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <span className="font-medium">{link.label}</span>
-                                  <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">
-                                    {link.description}
-                                  </p>
-                                </div>
-                              </Link>
-                            );
-                          })}
+                          {superAdminLinks.map((link) => (
+                            <NavItem key={link.href} {...link} active={isActive(link.href)} />
+                          ))}
                         </div>
                       </motion.div>
                     )}
@@ -871,7 +670,7 @@ export default function DesktopSidebar({
             </div>
           </div>
         ) : (
-          // Collapsed Sidebar with tooltips
+          // Collapsed Sidebar
           <div className="flex-1 overflow-y-auto flex flex-col items-center py-4 space-y-2 scrollbar-thin scrollbar-thumb-stone-300 dark:scrollbar-thumb-stone-700 scrollbar-track-transparent">
             <div className="flex items-center justify-center pb-4 border-b border-stone-200 dark:border-white/10 w-full">
               <div
@@ -887,29 +686,27 @@ export default function DesktopSidebar({
               </div>
             </div>
 
-            {/* Main Links */}
-            {mainLinks.map((link) => {
-              const Icon = link.icon;
-              const active = isActive(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`group relative flex items-center justify-center rounded-xl w-11 h-11 transition-all duration-200 ${
-                    active
-                      ? 'bg-[#1B2A56]/10 dark:bg-[#1B2A56]/15 text-[#1B2A56] dark:text-[#8CA0DE]'
-                      : 'text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-white/5 hover:text-stone-700 dark:hover:text-stone-300'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="absolute left-full ml-3 px-2 py-1 bg-stone-900 dark:bg-[#22252E] text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                    {link.label}
-                  </span>
-                </Link>
-              );
-            })}
+            {/* Main Links - Collapsed */}
+            {mainLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`group relative flex items-center justify-center rounded-xl w-11 h-11 transition-all duration-200 ${
+                  isActive(link.href)
+                    ? 'bg-[#1B2A56]/10 dark:bg-[#1B2A56]/15 text-[#1B2A56] dark:text-[#8CA0DE]'
+                    : 'text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-white/5 hover:text-stone-700 dark:hover:text-stone-300'
+                }`}
+              >
+                <link.icon className="h-5 w-5" />
+                <span className="absolute left-full ml-3 px-2 py-1 bg-stone-900 dark:bg-[#22252E] text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                  {link.label}
+                </span>
+              </Link>
+            ))}
 
-            {/* Dashboard Link - Only if authenticated */}
+            <div className="w-10 border-t border-stone-200 dark:border-white/10 my-2" />
+
+            {/* Dashboard Link */}
             {isAuthenticated && (
               <Link
                 href="/dashboard"
@@ -926,7 +723,24 @@ export default function DesktopSidebar({
               </Link>
             )}
 
-            {/* Admin Link - Only if ADMIN or SUPERADMIN */}
+            {/* ✅ Create Project Link - FIXED: Points to /dashboard/projects/create */}
+            {isAuthenticated && (
+              <Link
+                href="/dashboard/projects/create"
+                className={`group relative flex items-center justify-center rounded-xl w-11 h-11 transition-all duration-200 ${
+                  isActive('/dashboard/projects/create')
+                    ? 'bg-[#1B2A56]/10 dark:bg-[#1B2A56]/15 text-[#1B2A56] dark:text-[#8CA0DE]'
+                    : 'text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-white/5 hover:text-stone-700 dark:hover:text-stone-300'
+                }`}
+              >
+                <Plus className="h-5 w-5" />
+                <span className="absolute left-full ml-3 px-2 py-1 bg-stone-900 dark:bg-[#22252E] text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                  Create Project
+                </span>
+              </Link>
+            )}
+
+            {/* Admin Link */}
             {(isAdmin || isSuperAdmin) && (
               <Link
                 href="/admin"
@@ -943,7 +757,7 @@ export default function DesktopSidebar({
               </Link>
             )}
 
-            {/* Super Admin Link - Only if SUPERADMIN */}
+            {/* Super Admin Link */}
             {isSuperAdmin && (
               <Link
                 href="/super"

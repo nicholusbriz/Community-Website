@@ -1,4 +1,3 @@
-// components/PublicLayout.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -104,9 +103,9 @@ export default function PublicLayout({
             isMobile={false}
           />
 
-          {/* Desktop Main Content with medium padding */}
-          <main className="min-h-screen w-full">
-            <div className="w-full">
+          {/* Desktop Main Content with proper spacing */}
+          <main className="min-h-screen w-full pt-6 px-6 pb-6">
+            <div className="w-full max-w-7xl mx-auto">
               {children}
             </div>
           </main>
@@ -130,7 +129,7 @@ export default function PublicLayout({
           </footer>
         </div>
 
-        {/* Mobile Content - with medium padding */}
+        {/* Mobile Content */}
         <div className="lg:hidden flex flex-col min-h-screen w-full">
           <TopBar 
             sidebarOpen={sidebarOpen}
@@ -142,9 +141,9 @@ export default function PublicLayout({
             mobileMenuOpen={mobileMenuOpen}
           />
 
-          {/* Mobile Main Content with medium padding */}
-          <main className="flex-1 w-full overflow-x-hidden overflow-y-auto">
-            <div className="w-full">
+          {/* Mobile Main Content with proper spacing */}
+          <main className="flex-1 w-full overflow-x-hidden overflow-y-auto pt-4 px-4 pb-4">
+            <div className="w-full max-w-7xl mx-auto">
               {children}
             </div>
           </main>

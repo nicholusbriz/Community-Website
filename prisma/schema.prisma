@@ -4,21 +4,19 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 // ============================================================
 // 🔐 AUTHENTICATION TABLES (Required for NextAuth)
 // ============================================================
 
-// 1. User Table - Stores user accounts
 model User {
   id            String    @id @default(cuid())
   name          String?
   email         String    @unique
   emailVerified DateTime?
   password      String?   @db.Text
-  
   image         String?
   roleId        String
   role          Role      @relation(fields: [roleId], references: [id])
@@ -36,10 +34,28 @@ model User {
   isActive      Boolean   @default(true)
   lastActive    DateTime  @default(now())
 
+  projectsCreated Project[] @relation("ProjectCreator")
+  projectsOwned   Project[] @relation("ProjectOwner")
+  projectsLead    ProjectLead[] @relation("ProjectLeadUser")
+  memberships     ProjectMember[]
+  joinRequests    JoinRequest[] @relation("JoinRequestUser")
+  joinRequestsReviewed JoinRequest[] @relation("JoinRequestReviewer")
+  tasksAssigned   Task[]     @relation("TaskAssignee")
+  tasksCreated    Task[]     @relation("TaskAssigner")
+  projectMessages ProjectMessage[]
+  activityLogs    ActivityLog[]
+  notifications   Notification[]
+  
+  groupsCreated   ProjectGroup[] @relation("GroupCreator")
+  leadsAssigned   ProjectLead[] @relation("LeadAssigner")
+
+  @@index([email])
+  @@index([username])
+  @@index([roleId])
+  @@index([isActive])
   @@map("users")
 }
 
-// 2. Account Table
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -57,10 +73,10 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
   @@map("accounts")
 }
 
-// 3. Session Table
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -69,10 +85,10 @@ model Session {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("sessions")
 }
 
-// 4. Verification Token Table
 model VerificationToken {
   identifier String
   token      String @unique
@@ -94,5 +110,350 @@ model Role {
   updatedAt   DateTime @updatedAt
   users       User[]
 
+  @@index([name])
   @@map("roles")
+}
+
+// ============================================================
+// 📁 PROJECT GROUPS (Categories)
+// ============================================================
+
+model ProjectGroup {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?   @db.Text
+  icon        String?
+  color       String?
+  createdById String
+  createdBy   User      @relation("GroupCreator", fields: [createdById], references: [id])
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  projects    Project[]
+
+  @@index([name])
+  @@index([slug])
+  @@index([isActive])
+  @@map("projectgroups")
+}
+
+// ============================================================
+// 📁 PROJECT TABLES
+// ============================================================
+
+model Project {
+  id              String      @id @default(cuid())
+  title           String
+  slug            String      @unique
+  description     String      @db.Text
+  techStack       String[]    @default([])
+  goals           String[]    @default([])
+  maxTeamSize     Int         @default(1)
+  currentMembers  Int         @default(0)
+  status          ProjectStatus @default(OPEN)
+  difficulty      Difficulty  @default(INTERMEDIATE)
+  duration        String?
+  repositoryUrl   String?
+  demoUrl         String?
+  screenshots     String[]    @default([])
+  requirements    String?     @db.Text
+  learningOutcomes String[]   @default([])
+  
+  groupId         String?
+  group           ProjectGroup? @relation(fields: [groupId], references: [id])
+  
+  createdById     String
+  createdBy       User        @relation("ProjectCreator", fields: [createdById], references: [id])
+  ownerId         String
+  owner           User        @relation("ProjectOwner", fields: [ownerId], references: [id])
+  
+  isVerified      Boolean     @default(false)
+  isFeatured      Boolean     @default(false)
+  isArchived      Boolean     @default(false)
+  views           Int         @default(0)
+  joinCount       Int         @default(0)
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  startDate       DateTime?
+  endDate         DateTime?
+  completedAt     DateTime?
+  
+  members         ProjectMember[]
+  leads           ProjectLead[]
+  joinRequests    JoinRequest[]
+  tasks           Task[]
+  chatMessages    ProjectMessage[]
+  activityLog     ActivityLog[]
+  notifications   Notification[]
+
+  @@index([slug])
+  @@index([groupId])
+  @@index([status])
+  @@index([isFeatured])
+  @@index([createdAt])
+  @@map("projects")
+}
+
+// ============================================================
+// 📋 PROJECT LEADS
+// ============================================================
+
+model ProjectLead {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation("ProjectLeadUser", fields: [userId], references: [id])
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+  
+  assignedAt  DateTime  @default(now())
+  assignedById String
+  assignedBy  User      @relation("LeadAssigner", fields: [assignedById], references: [id])
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, projectId])
+  @@index([userId])
+  @@index([projectId])
+  @@map("projectleads")
+}
+
+// ============================================================
+// 📋 PROJECT MEMBERS
+// ============================================================
+
+model ProjectMember {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  projectId       String
+  project         Project     @relation(fields: [projectId], references: [id])
+  
+  status          MemberStatus @default(ACTIVE)
+  contributionScore Int       @default(0)
+  tasksCompleted  Int         @default(0)
+  joinedAt        DateTime    @default(now())
+  leftAt          DateTime?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@unique([userId, projectId])
+  @@index([userId])
+  @@index([projectId])
+  @@map("projectmembers")
+}
+
+// ============================================================
+// 📋 JOIN REQUESTS
+// ============================================================
+
+model JoinRequest {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation("JoinRequestUser", fields: [userId], references: [id])
+  projectId       String
+  project         Project     @relation(fields: [projectId], references: [id])
+  
+  status          RequestStatus @default(PENDING)
+  message         String?     @db.Text
+  skills          String[]    @default([])
+  experience      String?
+  portfolioLink   String?
+  
+  reviewedById    String?
+  reviewedBy      User?       @relation("JoinRequestReviewer", fields: [reviewedById], references: [id])
+  reviewedAt      DateTime?
+  rejectionReason String?     @db.Text
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+  @@map("joinrequests")
+}
+
+// ============================================================
+// 📋 TASK TABLES
+// ============================================================
+
+model Task {
+  id              String      @id @default(cuid())
+  title           String
+  description     String      @db.Text
+  projectId       String
+  project         Project     @relation(fields: [projectId], references: [id])
+  
+  assignedToId    String?
+  assignedTo      User?       @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  assignedById    String?
+  assignedBy      User?       @relation("TaskAssigner", fields: [assignedById], references: [id])
+  
+  status          TaskStatus  @default(TODO)
+  priority        Priority    @default(MEDIUM)
+  labels          String[]    @default([])
+  
+  dueDate         DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  timeEstimate    Int?
+  timeSpent       Int?
+  
+  reviewRequested Boolean     @default(false)
+  dependencyIds   String[]    @default([])
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([projectId])
+  @@index([assignedToId])
+  @@index([status])
+  @@map("tasks")
+}
+
+// ============================================================
+// 💬 PROJECT COMMUNICATION
+// ============================================================
+
+model ProjectMessage {
+  id              String      @id @default(cuid())
+  content         String      @db.Text
+  projectId       String
+  project         Project     @relation(fields: [projectId], references: [id])
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  
+  parentId        String?
+  parent          ProjectMessage? @relation("Replies", fields: [parentId], references: [id])
+  replies         ProjectMessage[] @relation("Replies")
+  
+  isEdited        Boolean     @default(false)
+  attachments     String[]    @default([])
+  mentions        String[]    @default([])
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("projectmessages")
+}
+
+// ============================================================
+// 📊 ACTIVITY & NOTIFICATIONS
+// ============================================================
+
+model ActivityLog {
+  id              String      @id @default(cuid())
+  projectId       String?     // ✅ Changed to optional with ?
+  project         Project?    @relation(fields: [projectId], references: [id])  // ✅ Made optional with ?
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  
+  action          ActivityAction
+  details         Json?
+  targetId        String?
+  
+  createdAt       DateTime    @default(now())
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activitylogs")
+}
+
+model Notification {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  projectId       String?
+  project         Project?    @relation(fields: [projectId], references: [id])
+  title           String
+  message         String      @db.Text
+  type            NotificationType @default(SYSTEM)
+  link            String?
+  isRead          Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ============================================================
+// 🔢 ENUMS
+// ============================================================
+
+enum ProjectStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  REMOVED
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum TaskStatus {
+  TODO
+  ASSIGNED
+  UNASSIGNED
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum NotificationType {
+  SYSTEM
+  PROJECT
+  TASK
+  REQUEST
+  MENTION
+}
+
+enum ActivityAction {
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  MEMBER_JOINED
+  MEMBER_LEFT
+  LEAD_ASSIGNED
+  LEAD_REMOVED
+  TASK_CREATED
+  TASK_ASSIGNED
+  TASK_UNASSIGNED 
+  TASK_COMPLETED
+  TASK_STATUS_CHANGED
+  REQUEST_APPROVED
+  REQUEST_REJECTED
+  MESSAGE_SENT
+  USER_ROLE_UPDATED  
+  USER_DELETED 
 }

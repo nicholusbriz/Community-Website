@@ -38,6 +38,13 @@ import {
   BarChart,
   HelpCircle,
   MapPin,
+  ListTodo,
+  Bell,
+  UserPlus,
+  CheckCircle,
+  Archive,
+  FileText,
+  FolderOpen
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -53,7 +60,7 @@ export interface MobileMenuProps {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Brand tokens — matches DesktopSidebar: black + dark navy only.
+// Brand tokens — matches DesktopSidebar
 // ─────────────────────────────────────────────────────────────
 const BRAND_GRADIENT = 'from-[#0B0F1A] via-[#16223F] to-[#1B2A56]';
 const ACCENT = {
@@ -67,19 +74,16 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
   const isAuthenticated = status === 'authenticated';
   const userRole = user?.role || 'USER';
 
-  // ✅ Simply use user.image from the session - no real-time logic
   const avatarUrl = user?.image || null;
 
-  // All sections expanded by default
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     main: true,
     explore: true,
     dashboard: true,
     admin: true,
     superAdmin: true,
-    resources: true,
-    community: true,
     getInvolved: true,
+    projectActions: true,
   });
 
   const toggleSection = (key: string) => {
@@ -95,84 +99,66 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
   };
 
   // ============================================================
-  // 📋 NAVIGATION CONFIGURATION - All routes from proxy
+  // 📋 NAVIGATION CONFIGURATION
   // ============================================================
 
-  // 1️⃣ MAIN NAVIGATION - Public Routes
+  // 1️⃣ PUBLIC NAVIGATION - Anyone can see these
   const mainLinks = [
     { href: '/', label: 'Home', icon: Home, description: 'Dashboard overview' },
     { href: '/about', label: 'About', icon: Info, description: 'Learn about us' },
-    { href: '/programs', label: 'Programs', icon: FolderGit2, description: 'Learning tracks' },
-    { href: '/resources', label: 'Resources', icon: BookOpen, description: 'Knowledge hub' },
     { href: '/developers', label: 'Developers', icon: Users, description: 'Community members' },
+    { href: '/projects', label: 'Projects', icon: FolderGit2, description: 'Browse all projects' }, // ✅ Public
   ];
 
-  // 2️⃣ DASHBOARD LINKS - Protected Routes (Any authenticated user)
+  // 2️⃣ EXPLORE - Public
+  const exploreItems = [
+    { href: '/community', label: 'Community Hub', icon: Users, description: 'Main space' },
+    { href: '/events', label: 'Events', icon: CalendarDays, description: 'Upcoming', badge: 'Live' },
+    { href: '/mentors', label: 'Mentors', icon: GraduationCap, description: 'Find mentors' },
+    { href: '/developers', label: 'Developers', icon: Users, description: 'Meet developers' },
+  ];
+
+  // 3️⃣ GET INVOLVED - Public
+  const getInvolvedItems = [
+    { href: '/join', label: 'Join Us', icon: UserPlus, description: 'Become a member' },
+    { href: '/faq', label: 'FAQ', icon: HelpCircle, description: 'Common questions' },
+    { href: '/contact', label: 'Contact', icon: MapPin, description: 'Get in touch' },
+  ];
+
+  // 4️⃣ PROJECT ACTIONS - ✅ Protected (only shown when authenticated)
+const projectActionLinks = [
+  { href: '/dashboard/projects/create', label: 'Create Project', icon: Plus, description: 'Start a new project' },
+  { href: '/dashboard/projects', label: 'Manage Projects', icon: FolderOpen, description: 'Manage your projects' },
+];
+
+  // 5️⃣ DASHBOARD LINKS - ✅ Protected (only shown when authenticated)
   const dashboardLinks = [
-    { href: '/dashboard', label: 'Dashboard Home', icon: LayoutDashboard, description: 'Overview' },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Overview' },
     { href: '/dashboard/projects', label: 'My Projects', icon: FolderKanban, description: 'Your projects' },
-    { href: '/dashboard/projects/new', label: 'Create Project', icon: Plus, description: 'Start new', badge: 'New' },
-    { href: '/dashboard/saved', label: 'Saved Projects', icon: Star, description: 'Bookmarked' },
+    { href: '/dashboard/tasks', label: 'My Tasks', icon: ListTodo, description: 'Assigned tasks' },
     { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, description: 'Inbox', badge: '3' },
-    { href: '/dashboard/profile', label: 'My Profile', icon: User, description: 'Your info' },
+    { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, description: 'Updates', badge: '5' },
+    { href: '/dashboard/profile', label: 'Profile', icon: User, description: 'Your info' },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings, description: 'Preferences' },
   ];
 
-  // 3️⃣ ADMIN LINKS - Admin Routes (ADMIN role only)
+  // 6️⃣ ADMIN LINKS - ✅ Protected (only shown when admin)
   const adminLinks = [
     { href: '/admin', label: 'Admin Dashboard', icon: Shield, description: 'Admin overview' },
-    { href: '/admin/users', label: 'Manage Users', icon: UsersIcon, description: 'User management' },
     { href: '/admin/projects', label: 'Manage Projects', icon: FolderKanban, description: 'Project oversight' },
-    { href: '/admin/analytics', label: 'Analytics', icon: BarChart, description: 'Site analytics' },
+    { href: '/admin/users', label: 'Manage Users', icon: UsersIcon, description: 'User management' },
+    { href: '/admin/projects/analytics', label: 'Analytics', icon: BarChart, description: 'Site analytics' },
+    { href: '/admin/reports', label: 'Reports', icon: FileText, description: 'Platform reports' },
   ];
 
-  // 4️⃣ SUPERADMIN LINKS - SuperAdmin Routes (SUPERADMIN role only)
+  // 7️⃣ SUPERADMIN LINKS - ✅ Protected (only shown when superadmin)
   const superAdminLinks = [
-    { href: '/super', label: 'Super Admin', icon: ShieldCheck, description: 'System overview' },
+    { href: '/super', label: 'Super Dashboard', icon: ShieldCheck, description: 'System overview' },
+    { href: '/super/projects', label: 'All Projects', icon: FolderGit2, description: 'Review all projects' },
+    { href: '/super/projects/review', label: 'Review Queue', icon: CheckCircle, description: 'Pending reviews' },
+    { href: '/super/projects/archive', label: 'Archived', icon: Archive, description: 'Archived projects' },
     { href: '/super/system', label: 'System Settings', icon: Server, description: 'System configuration' },
-    { href: '/super/database', label: 'Database', icon: Database, description: 'Database management' },
     { href: '/super/logs', label: 'Activity Logs', icon: Activity, description: 'System logs' },
-  ];
-
-  // 5️⃣ EXPLORE GROUPS - Public/Public Routes
-  const navGroups = [
-    {
-      key: 'resources',
-      label: 'Resources',
-      icon: BookOpen,
-      description: 'Learn and grow',
-      accent: ACCENT.black,
-      items: [
-        { href: '/blog', label: 'Blog', icon: MessageSquareQuote, description: 'Latest posts' },
-        { href: '/gallery', label: 'Gallery', icon: FolderGit2, description: 'Visual stories' },
-        { href: '/testimonials', label: 'Testimonials', icon: MessageSquareQuote, description: 'Member stories' },
-      ],
-    },
-    {
-      key: 'community',
-      label: 'Community',
-      icon: Users,
-      description: 'Connect and engage',
-      accent: ACCENT.navy,
-      items: [
-        { href: '/community', label: 'Community Hub', icon: Users, description: 'Main space' },
-        { href: '/events', label: 'Events', icon: CalendarDays, description: 'Upcoming', badge: 'Live' },
-        { href: '/mentors', label: 'Mentors', icon: Users, description: 'Find mentors' },
-        { href: '/projects', label: 'Projects', icon: FolderGit2, description: 'All projects' },
-      ],
-    },
-    {
-      key: 'getInvolved',
-      label: 'Get Involved',
-      icon: Sparkles,
-      description: 'Make an impact',
-      accent: ACCENT.black,
-      items: [
-        { href: '/join', label: 'Join Us', icon: Users, description: 'Become a member' },
-        { href: '/faq', label: 'FAQ', icon: HelpCircle, description: 'Common questions' },
-        { href: '/contact', label: 'Contact', icon: MapPin, description: 'Get in touch' },
-      ],
-    },
   ];
 
   // ============================================================
@@ -181,24 +167,22 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === href;
-    if (href === '/dashboard') return pathname === '/dashboard';
-    if (href === '/admin') return pathname === '/admin';
-    if (href === '/super') return pathname === '/super';
+    if (href === '/dashboard') return pathname === href || pathname.startsWith('/dashboard/');
+    if (href === '/admin') return pathname === href || pathname.startsWith('/admin/');
+    if (href === '/super') return pathname === href || pathname.startsWith('/super/');
+    if (href === '/projects') return pathname === href || pathname.startsWith('/projects/');
     return pathname.startsWith(href);
   };
 
-  // Check if user has admin role
-  const isAdmin = userRole === 'ADMIN';
+  const isAdmin = userRole === 'ADMIN' || userRole === 'SUPERADMIN';
   const isSuperAdmin = userRole === 'SUPERADMIN';
 
-  // Get user initials from centralized auth
   const getUserInitials = () => {
     if (user?.name) return user.name.charAt(0).toUpperCase();
     if (user?.email) return user.email.charAt(0).toUpperCase();
     return 'U';
   };
 
-  // Get user display name from centralized auth
   const getUserName = () => {
     if (user?.name) return user.name;
     if (user?.email) return user.email.split('@')[0];
@@ -211,28 +195,81 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
     { label: 'Projects', value: '456', icon: FolderGit2, accent: ACCENT.black },
   ];
 
-  // Quick links - based on auth status and role
+  // ✅ Quick links - Public project link goes to /projects (public)
   const quickLinks = isAuthenticated
     ? [
         { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', accent: ACCENT.navy },
         { icon: Calendar, label: 'Events', href: '/events', accent: ACCENT.black },
         { icon: GraduationCap, label: 'Mentors', href: '/mentors', accent: ACCENT.navy },
-        { icon: FolderGit2, label: 'Projects', href: '/projects', accent: ACCENT.black },
-        // ✅ Show admin quick link for ADMIN users
+        { icon: FolderGit2, label: 'Projects', href: '/projects', accent: ACCENT.black }, // ✅ Public
         ...(isAdmin ? [
           { icon: Shield, label: 'Admin', href: '/admin', accent: ACCENT.navy },
         ] : []),
-        // ✅ Show super admin quick link for SUPERADMIN users
         ...(isSuperAdmin ? [
           { icon: ShieldCheck, label: 'Super', href: '/super', accent: ACCENT.navy },
         ] : []),
       ]
     : [
-        { icon: Users, label: 'Login', href: '/login', accent: ACCENT.navy },
+        { icon: User, label: 'Login', href: '/login', accent: ACCENT.navy },
         { icon: Calendar, label: 'Events', href: '/events', accent: ACCENT.black },
         { icon: GraduationCap, label: 'Mentors', href: '/mentors', accent: ACCENT.navy },
-        { icon: FolderGit2, label: 'Projects', href: '/projects', accent: ACCENT.black },
+        { icon: FolderGit2, label: 'Projects', href: '/projects', accent: ACCENT.black }, // ✅ Public
       ];
+
+  const NavItem = ({ href, label, icon: Icon, description, badge, active, onClick }: any) => (
+    <Link
+      key={href}
+      href={href}
+      onClick={onClick}
+      className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
+        active
+          ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.15] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
+          : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
+      }`}
+    >
+      {active && (
+        <span className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`} />
+      )}
+      <Icon
+        className={`h-4 w-4 flex-shrink-0 ${
+          active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
+        }`}
+      />
+      <div className="flex-1 min-w-0">
+        <span className="font-medium">{label}</span>
+        {description && (
+          <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">{description}</p>
+        )}
+      </div>
+      {badge && (
+        <span
+          className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+            badge === 'New' || badge === 'Live'
+              ? 'bg-[#1B2A56]/10 dark:bg-[#1B2A56]/20 text-[#1B2A56] dark:text-[#8CA0DE]'
+              : 'text-white bg-gradient-to-r ' + BRAND_GRADIENT
+          }`}
+        >
+          {badge}
+        </span>
+      )}
+    </Link>
+  );
+
+  const SectionHeader = ({ label, expanded, toggle }: any) => (
+    <button
+      onClick={toggle}
+      className="group flex items-center justify-between w-full px-2 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
+    >
+      <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
+        {label}
+      </span>
+      {expanded ? (
+        <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+      ) : (
+        <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+      )}
+    </button>
+  );
 
   return (
     <AnimatePresence>
@@ -247,11 +284,10 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
           }}
           className="fixed top-0 left-0 h-full w-[92%] max-w-sm z-[9999] lg:hidden bg-white dark:bg-[#101114] shadow-2xl overflow-y-auto"
         >
-          {/* Signature brand rail — matches the desktop sidebar */}
           <div className={`absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b ${BRAND_GRADIENT}`} />
 
           <div className="p-5 pl-6">
-            {/* Header with Brand and Close */}
+            {/* Header */}
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2.5">
                 <div
@@ -283,7 +319,7 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
               </button>
             </div>
 
-            {/* Hero Section - Hide when authenticated */}
+            {/* Hero Section */}
             {!isAuthenticated && (
               <div className={`relative overflow-hidden mb-5 p-4 rounded-2xl bg-gradient-to-br ${BRAND_GRADIENT} shadow-lg shadow-[#1B2A56]/20`}>
                 <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/10" />
@@ -306,7 +342,7 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
               </div>
             )}
 
-            {/* Stats Section */}
+            {/* Stats */}
             <div className="grid grid-cols-3 gap-2 mb-5">
               {stats.map((stat) => {
                 const Icon = stat.icon;
@@ -327,7 +363,7 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
               })}
             </div>
 
-            {/* Quick Links */}
+            {/* Quick Links - All public */}
             <div className="grid grid-cols-4 gap-1.5 mb-5">
               {quickLinks.map((link) => {
                 const Icon = link.icon;
@@ -351,24 +387,11 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
               })}
             </div>
 
-            {/* Divider */}
             <div className="border-t border-stone-200 dark:border-white/10 my-4" />
 
-            {/* MAIN SECTION */}
+            {/* MAIN SECTION - Public */}
             <div className="mb-3">
-              <button
-                onClick={() => toggleSection('main')}
-                className="group flex items-center justify-between w-full px-2 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-              >
-                <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
-                  Main
-                </span>
-                {expandedSections.main ? (
-                  <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                ) : (
-                  <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                )}
-              </button>
+              <SectionHeader label="Main" expanded={expandedSections.main} toggle={() => toggleSection('main')} />
               <AnimatePresence>
                 {expandedSections.main && (
                   <motion.div
@@ -379,56 +402,18 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
                     className="overflow-hidden"
                   >
                     <div className="space-y-0.5 mt-1">
-                      {mainLinks.map((link) => {
-                        const Icon = link.icon;
-                        const active = isActive(link.href);
-                        return (
-                          <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={onClose}
-                            className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
-                              active
-                                ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.15] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
-                                : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
-                            }`}
-                          >
-                            {active && (
-                              <span className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`} />
-                            )}
-                            <Icon
-                              className={`h-4 w-4 flex-shrink-0 ${
-                                active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                              }`}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <span className="font-medium">{link.label}</span>
-                              <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">{link.description}</p>
-                            </div>
-                          </Link>
-                        );
-                      })}
+                      {mainLinks.map((link) => (
+                        <NavItem key={link.href} {...link} active={isActive(link.href)} onClick={onClose} />
+                      ))}
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* EXPLORE SECTION */}
+            {/* EXPLORE SECTION - Public */}
             <div className="mb-3">
-              <button
-                onClick={() => toggleSection('explore')}
-                className="group flex items-center justify-between w-full px-2 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-              >
-                <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
-                  Explore
-                </span>
-                {expandedSections.explore ? (
-                  <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                ) : (
-                  <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                )}
-              </button>
+              <SectionHeader label="Explore" expanded={expandedSections.explore} toggle={() => toggleSection('explore')} />
               <AnimatePresence>
                 {expandedSections.explore && (
                   <motion.div
@@ -439,93 +424,65 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
                     className="overflow-hidden"
                   >
                     <div className="space-y-0.5 mt-1">
-                      {navGroups.map((group) => {
-                        const Icon = group.icon;
-                        const isGroupOpen = expandedSections[group.key] ?? true;
-                        const groupActive = group.items.some((item) => isActive(item.href));
-
-                        return (
-                          <div key={group.key} className="mb-0.5">
-                            <button
-                              onClick={() => toggleSection(group.key)}
-                              className="group w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-                            >
-                              <div
-                                className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${
-                                  groupActive ? `${group.accent.soft} ${group.accent.softDark}` : 'text-stone-400 dark:text-stone-500'
-                                }`}
-                              >
-                                <Icon
-                                  className={`h-3.5 w-3.5 ${
-                                    groupActive ? `${group.accent.text} ${group.accent.darkText}` : 'text-stone-400 dark:text-stone-500'
-                                  }`}
-                                />
-                              </div>
-                              <div className="flex-1 text-left min-w-0">
-                                <span className={`font-medium ${groupActive ? 'text-stone-900 dark:text-white' : 'text-stone-600 dark:text-stone-300'}`}>
-                                  {group.label}
-                                </span>
-                                <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">{group.description}</p>
-                              </div>
-                              {isGroupOpen ? (
-                                <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500 flex-shrink-0" />
-                              ) : (
-                                <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500 flex-shrink-0" />
-                              )}
-                            </button>
-                            {isGroupOpen && (
-                              <div className="ml-3 pl-4 space-y-0.5 mt-0.5 border-l border-stone-200 dark:border-white/10">
-                                {group.items.map((link) => {
-                                  const LinkIcon = link.icon;
-                                  const active = isActive(link.href);
-                                  return (
-                                    <Link
-                                      key={link.href}
-                                      href={link.href}
-                                      onClick={onClose}
-                                      className={`group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-all duration-200 ${
-                                        active
-                                          ? `${group.accent.text} ${group.accent.darkText} font-medium ${group.accent.soft} ${group.accent.softDark}`
-                                          : 'text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-white/5 hover:text-stone-800 dark:hover:text-white'
-                                      }`}
-                                    >
-                                      <LinkIcon className="h-3.5 w-3.5 flex-shrink-0" />
-                                      <span className="flex-1 truncate">{link.label}</span>
-                                      {link.badge && (
-                                        <span className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full text-white bg-gradient-to-r ${BRAND_GRADIENT}`}>
-                                          {link.badge}
-                                        </span>
-                                      )}
-                                    </Link>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                      {exploreItems.map((link) => (
+                        <NavItem key={link.href} {...link} active={isActive(link.href)} onClick={onClose} />
+                      ))}
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* DASHBOARD SECTION - Only show when authenticated */}
+            {/* GET INVOLVED - Public */}
+            <div className="mb-3">
+              <SectionHeader label="Get Involved" expanded={expandedSections.getInvolved} toggle={() => toggleSection('getInvolved')} />
+              <AnimatePresence>
+                {expandedSections.getInvolved && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-0.5 mt-1">
+                      {getInvolvedItems.map((link) => (
+                        <NavItem key={link.href} {...link} active={isActive(link.href)} onClick={onClose} />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* PROJECT ACTIONS - ✅ Only shown when authenticated */}
             {isAuthenticated && (
               <div className="mb-3">
-                <button
-                  onClick={() => toggleSection('dashboard')}
-                  className="group flex items-center justify-between w-full px-2 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-                >
-                  <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
-                    Dashboard
-                  </span>
-                  {expandedSections.dashboard ? (
-                    <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+                <SectionHeader label="Projects" expanded={expandedSections.projectActions} toggle={() => toggleSection('projectActions')} />
+                <AnimatePresence>
+                  {expandedSections.projectActions && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="space-y-0.5 mt-1">
+                        {projectActionLinks.map((link) => (
+                          <NavItem key={link.href} {...link} active={isActive(link.href)} onClick={onClose} />
+                        ))}
+                      </div>
+                    </motion.div>
                   )}
-                </button>
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* DASHBOARD SECTION - ✅ Only shown when authenticated */}
+            {isAuthenticated && (
+              <div className="mb-3">
+                <SectionHeader label="Dashboard" expanded={expandedSections.dashboard} toggle={() => toggleSection('dashboard')} />
                 <AnimatePresence>
                   {expandedSections.dashboard && (
                     <motion.div
@@ -536,46 +493,9 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
                       className="overflow-hidden"
                     >
                       <div className="space-y-0.5 mt-1">
-                        {dashboardLinks.map((link) => {
-                          const Icon = link.icon;
-                          const active = isActive(link.href);
-                          return (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              onClick={onClose}
-                              className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
-                                active
-                                  ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.15] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
-                                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
-                              }`}
-                            >
-                              {active && (
-                                <span className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`} />
-                              )}
-                              <Icon
-                                className={`h-4 w-4 flex-shrink-0 ${
-                                  active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                                }`}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <span className="font-medium">{link.label}</span>
-                                <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">{link.description}</p>
-                              </div>
-                              {link.badge && (
-                                <span
-                                  className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                                    link.badge === 'New'
-                                      ? 'bg-[#1B2A56]/10 dark:bg-[#1B2A56]/20 text-[#1B2A56] dark:text-[#8CA0DE]'
-                                      : 'text-white bg-gradient-to-r ' + BRAND_GRADIENT
-                                  }`}
-                                >
-                                  {link.badge}
-                                </span>
-                              )}
-                            </Link>
-                          );
-                        })}
+                        {dashboardLinks.map((link) => (
+                          <NavItem key={link.href} {...link} active={isActive(link.href)} onClick={onClose} />
+                        ))}
                       </div>
                     </motion.div>
                   )}
@@ -583,22 +503,10 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
               </div>
             )}
 
-            {/* ADMIN SECTION - Only show for ADMIN or SUPERADMIN */}
+            {/* ADMIN SECTION - ✅ Only shown when admin */}
             {(isAdmin || isSuperAdmin) && (
               <div className="mb-3">
-                <button
-                  onClick={() => toggleSection('admin')}
-                  className="group flex items-center justify-between w-full px-2 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-                >
-                  <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
-                    Admin
-                  </span>
-                  {expandedSections.admin ? (
-                    <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                  )}
-                </button>
+                <SectionHeader label="Admin" expanded={expandedSections.admin} toggle={() => toggleSection('admin')} />
                 <AnimatePresence>
                   {expandedSections.admin && (
                     <motion.div
@@ -609,35 +517,9 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
                       className="overflow-hidden"
                     >
                       <div className="space-y-0.5 mt-1">
-                        {adminLinks.map((link) => {
-                          const Icon = link.icon;
-                          const active = isActive(link.href);
-                          return (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              onClick={onClose}
-                              className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
-                                active
-                                  ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.15] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
-                                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
-                              }`}
-                            >
-                              {active && (
-                                <span className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`} />
-                              )}
-                              <Icon
-                                className={`h-4 w-4 flex-shrink-0 ${
-                                  active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                                }`}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <span className="font-medium">{link.label}</span>
-                                <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">{link.description}</p>
-                              </div>
-                            </Link>
-                          );
-                        })}
+                        {adminLinks.map((link) => (
+                          <NavItem key={link.href} {...link} active={isActive(link.href)} onClick={onClose} />
+                        ))}
                       </div>
                     </motion.div>
                   )}
@@ -645,22 +527,10 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
               </div>
             )}
 
-            {/* SUPERADMIN SECTION - Only show for SUPERADMIN */}
+            {/* SUPERADMIN SECTION - ✅ Only shown when superadmin */}
             {isSuperAdmin && (
               <div className="mb-3">
-                <button
-                  onClick={() => toggleSection('superAdmin')}
-                  className="group flex items-center justify-between w-full px-2 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-200"
-                >
-                  <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.12em]">
-                    Super Admin
-                  </span>
-                  {expandedSections.superAdmin ? (
-                    <ChevronUp className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
-                  )}
-                </button>
+                <SectionHeader label="Super Admin" expanded={expandedSections.superAdmin} toggle={() => toggleSection('superAdmin')} />
                 <AnimatePresence>
                   {expandedSections.superAdmin && (
                     <motion.div
@@ -671,35 +541,9 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
                       className="overflow-hidden"
                     >
                       <div className="space-y-0.5 mt-1">
-                        {superAdminLinks.map((link) => {
-                          const Icon = link.icon;
-                          const active = isActive(link.href);
-                          return (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              onClick={onClose}
-                              className={`group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2.5 text-sm transition-all duration-200 ${
-                                active
-                                  ? 'bg-[#1B2A56]/[0.08] dark:bg-[#1B2A56]/[0.15] text-[#1B2A56] dark:text-[#8CA0DE] font-medium'
-                                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5'
-                              }`}
-                            >
-                              {active && (
-                                <span className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b ${BRAND_GRADIENT}`} />
-                              )}
-                              <Icon
-                                className={`h-4 w-4 flex-shrink-0 ${
-                                  active ? 'text-[#1B2A56] dark:text-[#8CA0DE]' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                                }`}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <span className="font-medium">{link.label}</span>
-                                <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate">{link.description}</p>
-                              </div>
-                            </Link>
-                          );
-                        })}
+                        {superAdminLinks.map((link) => (
+                          <NavItem key={link.href} {...link} active={isActive(link.href)} onClick={onClose} />
+                        ))}
                       </div>
                     </motion.div>
                   )}
@@ -707,10 +551,9 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
               </div>
             )}
 
-            {/* Divider */}
             <div className="border-t border-stone-200 dark:border-white/10 my-4" />
 
-            {/* User Section - Show different content based on auth status */}
+            {/* User Section */}
             <div className="pt-1">
               {isAuthenticated ? (
                 <>
@@ -809,10 +652,9 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
               )}
             </div>
 
-            {/* Divider */}
             <div className="border-t border-stone-200 dark:border-white/10 my-4" />
 
-            {/* Bottom Action Button - Changes based on auth status */}
+            {/* Bottom Action Button */}
             {isAuthenticated ? (
               <Link
                 href="/dashboard"

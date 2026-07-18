@@ -22,12 +22,26 @@ import {
   MessageSquare,
   Plus,
   FolderGit2,
+  ListTodo,
+  Bell as BellIcon,
+  User,
+  Sparkles,
+  FolderOpen,
+  Shield,
+  ShieldCheck,
+  CheckCircle,
+  Users,
+  UserPlus,
+  AlertCircle
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/app/lib/auth/useAuth';
+import { useNotifications } from '@/app/lib/hooks/useNotifications';
+// ✅ Import Prisma types
+import type { Notification } from '@prisma/client';
 
 interface TopBarProps {
   sidebarOpen: boolean;
@@ -39,8 +53,17 @@ interface TopBarProps {
   mobileMenuOpen?: boolean;
 }
 
+// ✅ Extended notification type with relations
+type NotificationWithProject = Notification & {
+  project: {
+    id: string;
+    title: string;
+    slug: string;
+  } | null;
+};
+
 // ─────────────────────────────────────────────────────────────
-// Brand tokens — matches DesktopSidebar / MobileMenu: black + dark navy only.
+// Brand tokens — matches DesktopSidebar / MobileMenu
 // ─────────────────────────────────────────────────────────────
 const BRAND_GRADIENT = 'from-[#0B0F1A] via-[#16223F] to-[#1B2A56]';
 const NAVY = '#1B2A56';
@@ -59,43 +82,87 @@ export default function TopBar({
   const router = useRouter();
   const { user, status, actions } = useAuth();
   const isAuthenticated = status === 'authenticated';
+  const userRole = user?.role || 'USER';
+
+  // ✅ Use real notifications from the API with error handling
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead,
+    isMarking,
+    isMarkingAll,
+    error: notificationsError
+  } = useNotifications({ limit: 10 });
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ✅ Simply use user.image from the session - no real-time logic
   const avatarUrl = user?.image || null;
 
-  // Notification items
-  const notifications = [
-    { id: 1, title: 'New comment on your project', message: 'Sarah commented on "AI Chat App"', time: '5 min ago', read: false, link: '/dashboard/messages' },
-    { id: 2, title: 'Project liked', message: 'Mike liked your project "DevPortfolio"', time: '1 hour ago', read: false, link: '/dashboard/projects' },
-    { id: 3, title: 'Join request', message: 'Emily requested to join "EcoTracker"', time: '3 hours ago', read: true, link: '/dashboard/messages' },
-    { id: 4, title: 'New member joined', message: 'Welcome James Wilson to the community!', time: '1 day ago', read: true, link: '/community' },
-  ];
+  // Get icon for notification type
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'REQUEST':
+        return <UserPlus className="w-3.5 h-3.5 text-yellow-500" />;
+      case 'TASK':
+        return <CheckCircle className="w-3.5 h-3.5 text-blue-500" />;
+      case 'PROJECT':
+        return <Users className="w-3.5 h-3.5 text-purple-500" />;
+      case 'MENTION':
+        return <MessageSquare className="w-3.5 h-3.5 text-green-500" />;
+      default:
+        return <BellIcon className="w-3.5 h-3.5 text-gray-500" />;
+    }
+  };
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  // ✅ Fix: Accept Date or string, convert to Date if needed
+  const formatDate = (date: Date | string) => {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const now = new Date();
+    const diff = now.getTime() - d.getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
 
-  // Handle sign out using centralized auth
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + 'm ago';
+    if (hours < 24) return hours + 'h ago';
+    if (days < 7) return days + 'd ago';
+    return d.toLocaleDateString();
+  };
+
   const handleSignOut = async () => {
     setUserDropdownOpen(false);
     await actions.signOutUser();
   };
 
-  // Get user initials from centralized auth
   const getUserInitials = () => {
     if (user?.name) return user.name.charAt(0).toUpperCase();
     if (user?.email) return user.email.charAt(0).toUpperCase();
     return 'U';
   };
 
-  // Get user display name from centralized auth
   const getUserName = () => {
     if (user?.name) return user.name;
     if (user?.email) return user.email.split('@')[0];
     return 'User';
+  };
+
+  const handleNotificationClick = async (notification: NotificationWithProject) => {
+    if (!notification.isRead) {
+      await markAsRead(notification.id);
+    }
+    setNotificationsOpen(false);
+    if (notification.link) {
+      router.push(notification.link);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    await markAllAsRead();
   };
 
   // User dropdown items
@@ -103,18 +170,25 @@ export default function TopBar({
     ? [
         { icon: UserCircle, label: 'My Profile', href: '/dashboard/profile' },
         { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+        { icon: FolderGit2, label: 'My Projects', href: '/dashboard/projects' },
+        { icon: ListTodo, label: 'My Tasks', href: '/dashboard/tasks' },
         { icon: MessageSquare, label: 'Messages', href: '/dashboard/messages' },
         { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
-        { icon: Bookmark, label: 'Saved Projects', href: '/dashboard/saved' },
-        { icon: Gift, label: 'Invite Friends', href: '#' },
+        { icon: Gift, label: 'Invite Friends', href: '/join' },
       ]
     : [];
 
   // Quick actions for desktop top bar
   const quickActions = [
-    { icon: Plus, label: 'New Project', href: '/dashboard/projects/new' },
+    { icon: Plus, label: 'Create Project', href: '/dashboard/projects/create' },
+    { icon: FolderOpen, label: 'My Projects', href: '/dashboard/projects' },
     { icon: MessageSquare, label: 'Messages', href: '/dashboard/messages' },
-    { icon: FolderGit2, label: 'Projects', href: '/dashboard/projects' },
+  ];
+
+  // Admin quick actions
+  const adminQuickActions = [
+    { icon: Shield, label: 'Admin Panel', href: '/admin' },
+    { icon: ShieldCheck, label: 'Super Admin', href: '/super' },
   ];
 
   // Get breadcrumb items
@@ -125,9 +199,31 @@ export default function TopBar({
     const crumbs = [{ label: 'Home', href: '/' }];
     let currentPath = '';
     for (const segment of segments) {
-      currentPath += `/${segment}`;
+      currentPath += '/' + segment;
+      let label = segment.replace(/-/g, ' ');
+      if (segment === 'dashboard') label = 'Dashboard';
+      else if (segment === 'projects') label = 'Projects';
+      else if (segment === 'admin') label = 'Admin';
+      else if (segment === 'super') label = 'Super Admin';
+      else if (segment === 'create') label = 'Create';
+      else if (segment === 'manage') label = 'Manage';
+      else if (segment === 'tasks') label = 'Tasks';
+      else if (segment === 'team') label = 'Team';
+      else if (segment === 'chat') label = 'Chat';
+      else if (segment === 'files') label = 'Files';
+      else if (segment === 'settings') label = 'Settings';
+      else if (segment === 'profile') label = 'Profile';
+      else if (segment === 'messages') label = 'Messages';
+      else if (segment === 'notifications') label = 'Notifications';
+      else if (segment === 'reports') label = 'Reports';
+      else if (segment === 'analytics') label = 'Analytics';
+      else if (segment === 'review') label = 'Review';
+      else if (segment === 'archive') label = 'Archive';
+      else if (segment === 'system') label = 'System';
+      else if (segment === 'logs') label = 'Logs';
+      
       crumbs.push({
-        label: segment.replace(/-/g, ' '),
+        label: label.charAt(0).toUpperCase() + label.slice(1),
         href: currentPath,
       });
     }
@@ -140,7 +236,7 @@ export default function TopBar({
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+      router.push('/search?q=' + encodeURIComponent(searchQuery));
       setSearchOpen(false);
       setSearchQuery('');
     }
@@ -151,7 +247,6 @@ export default function TopBar({
     return (
       <header className="lg:hidden sticky top-0 z-50 bg-white/95 dark:bg-[#101114]/95 backdrop-blur-md border-b border-stone-200/70 dark:border-white/10 shadow-sm">
         <div className="px-4 py-3 relative">
-          {/* Fixed Hamburger Button - positioned on top */}
           <button
             onClick={onMenuToggle}
             className="absolute top-1/2 -translate-y-1/2 left-4 z-10 p-2.5 rounded-xl bg-white dark:bg-[#101114] shadow-lg border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-white/10 transition-all duration-200 focus:outline-none"
@@ -164,11 +259,9 @@ export default function TopBar({
             )}
           </button>
 
-          {/* Top Row: Logo, Actions */}
           <div className="flex items-center justify-between pl-14">
-            {/* Left: Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-br ${BRAND_GRADIENT} shadow-sm`}>
+              <div className={'w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-gradient-to-br ' + BRAND_GRADIENT + ' shadow-sm'}>
                 <Image
                   src="/community-website-logo.png"
                   alt="Community Ecosystem Logo"
@@ -183,9 +276,7 @@ export default function TopBar({
               </div>
             </Link>
 
-            {/* Right: Actions */}
             <div className="flex items-center gap-0.5">
-              {/* Search Button */}
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
                 className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400"
@@ -194,7 +285,6 @@ export default function TopBar({
                 <Search className="h-5 w-5" />
               </button>
 
-              {/* Dark Mode Toggle */}
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400"
@@ -203,7 +293,6 @@ export default function TopBar({
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
 
-              {/* Messages - Only show when authenticated */}
               {isAuthenticated && (
                 <Link
                   href="/dashboard/messages"
@@ -214,7 +303,6 @@ export default function TopBar({
                 </Link>
               )}
 
-              {/* Notifications - Only show when authenticated */}
               {isAuthenticated && (
                 <div className="relative">
                   <button
@@ -224,15 +312,12 @@ export default function TopBar({
                   >
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
-                      <span
-                        className={`absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r ${BRAND_GRADIENT} text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm`}
-                      >
+                      <span className={'absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r ' + BRAND_GRADIENT + ' text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm'}>
                         {unreadCount}
                       </span>
                     )}
                   </button>
 
-                  {/* Notifications Dropdown */}
                   <AnimatePresence>
                     {notificationsOpen && (
                       <motion.div
@@ -244,45 +329,58 @@ export default function TopBar({
                       >
                         <div className="p-4 border-b border-stone-200 dark:border-white/10 flex items-center justify-between">
                           <h3 className="font-semibold text-stone-900 dark:text-white text-sm">Notifications</h3>
-                          <button
-                            onClick={() => setNotificationsOpen(false)}
-                            className="text-xs font-medium transition-colors"
-                            style={{ color: NAVY }}
-                          >
-                            Mark all read
-                          </button>
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={handleMarkAllRead}
+                              disabled={isMarkingAll}
+                              className="text-xs font-medium text-[#1B2A56] dark:text-[#8CA0DE] hover:underline disabled:opacity-50"
+                            >
+                              {isMarkingAll ? '...' : 'Mark all read'}
+                            </button>
+                          )}
                         </div>
                         <div className="max-h-80 overflow-y-auto">
-                          {notifications.map((notif) => (
-                            <Link
-                              key={notif.id}
-                              href={notif.link}
-                              onClick={() => setNotificationsOpen(false)}
-                              className={`block p-3 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors border-b border-stone-100 dark:border-white/5 last:border-0 ${
-                                !notif.read ? 'bg-[#1B2A56]/[0.04] dark:bg-[#1B2A56]/10' : ''
-                              }`}
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-xs font-bold" style={{ color: NAVY }}>✓</span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-stone-900 dark:text-white">{notif.title}</p>
-                                  <p className="text-xs text-stone-500 dark:text-stone-400">{notif.message}</p>
-                                  <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">{notif.time}</p>
-                                </div>
-                                {!notif.read && (
-                                  <span className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ backgroundColor: NAVY }} />
+                          {notifications.length === 0 ? (
+                            <div className="text-center py-8">
+                              <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                              <p className="text-sm text-gray-500">No notifications</p>
+                            </div>
+                          ) : (
+                            notifications.map((notif: NotificationWithProject) => (
+                              <div
+                                key={notif.id}
+                                onClick={() => handleNotificationClick(notif)}
+                                className={'block p-3 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors cursor-pointer border-b border-stone-100 dark:border-white/5 last:border-0 ' + (
+                                  !notif.isRead ? 'bg-[#1B2A56]/[0.04] dark:bg-[#1B2A56]/10' : ''
                                 )}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                                    {getNotificationIcon(notif.type)}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-stone-900 dark:text-white">{notif.title}</p>
+                                    <p className="text-xs text-stone-500 dark:text-stone-400 line-clamp-2">{notif.message}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <p className="text-xs text-stone-400 dark:text-stone-500">{formatDate(notif.createdAt)}</p>
+                                      {notif.project && (
+                                        <span className="text-xs text-stone-400 dark:text-stone-500">• {notif.project.title}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {!notif.isRead && (
+                                    <span className="w-2 h-2 rounded-full flex-shrink-0 mt-2 bg-[#1B2A56]" />
+                                  )}
+                                </div>
                               </div>
-                            </Link>
-                          ))}
+                            ))
+                          )}
                         </div>
                         <div className="p-3 border-t border-stone-200 dark:border-white/10 text-center">
                           <Link
-                            href="/dashboard/messages"
-                            className="text-sm font-medium transition-colors"
-                            style={{ color: NAVY }}
+                            href="/dashboard/notifications"
+                            className="text-sm font-medium text-[#1B2A56] dark:text-[#8CA0DE] hover:underline"
+                            onClick={() => setNotificationsOpen(false)}
                           >
                             View all notifications
                           </Link>
@@ -293,11 +391,10 @@ export default function TopBar({
                 </div>
               )}
 
-              {/* Join/Login Button - Only show when NOT authenticated */}
               {!isAuthenticated && (
                 <Link
                   href="/join"
-                  className={`ml-1 rounded-full bg-gradient-to-r ${BRAND_GRADIENT} px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:shadow-md active:scale-95`}
+                  className={'ml-1 rounded-full bg-gradient-to-r ' + BRAND_GRADIENT + ' px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:shadow-md active:scale-95'}
                 >
                   Join
                 </Link>
@@ -305,7 +402,6 @@ export default function TopBar({
             </div>
           </div>
 
-          {/* Mobile Search Bar (expandable) */}
           {searchOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -318,7 +414,7 @@ export default function TopBar({
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500" />
                 <input
                   type="text"
-                  placeholder="Search projects, developers, resources..."
+                  placeholder="Search projects, developers..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 dark:focus:ring-[#8CA0DE]/30 focus:border-transparent transition-all text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500"
@@ -344,7 +440,7 @@ export default function TopBar({
     <header className="hidden lg:block sticky top-0 z-50 bg-white/95 dark:bg-[#101114]/95 backdrop-blur-md border-b border-stone-200/70 dark:border-white/10 shadow-sm">
       <div className="px-6 py-2.5 flex items-center justify-between">
         {/* Left Section - Sidebar toggle and breadcrumb */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-[200px]">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
@@ -353,7 +449,6 @@ export default function TopBar({
             <Menu className="h-5 w-5 text-stone-500 dark:text-stone-400" />
           </button>
 
-          {/* Breadcrumb Navigation */}
           <nav className="hidden md:flex items-center gap-1 text-sm" aria-label="Breadcrumb">
             {breadcrumbs.map((crumb, index) => (
               <div key={crumb.href} className="flex items-center gap-1">
@@ -363,7 +458,7 @@ export default function TopBar({
                 ) : (
                   <Link
                     href={crumb.href}
-                    className="text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 transition-colors capitalize"
+                    className="text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 transition-colors capitalize text-sm"
                   >
                     {index === 0 && <Home className="h-3.5 w-3.5 inline mr-1" />}
                     {crumb.label}
@@ -382,7 +477,7 @@ export default function TopBar({
             </div>
             <input
               type="text"
-              placeholder="Search projects, developers, resources..."
+              placeholder="Search projects, developers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-12 py-2 bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 dark:focus:ring-[#8CA0DE]/30 focus:border-transparent transition-all text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500"
@@ -395,7 +490,6 @@ export default function TopBar({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-0.5">
-          {/* Quick Actions - Desktop Only */}
           {isAuthenticated && (
             <div className="hidden xl:flex items-center gap-1 mr-1">
               {quickActions.map((action) => {
@@ -411,11 +505,33 @@ export default function TopBar({
                   </Link>
                 );
               })}
+              {(userRole === 'ADMIN' || userRole === 'SUPERADMIN') && (
+                <>
+                  <div className="w-px h-6 bg-stone-200 dark:bg-white/10 mx-1" />
+                  {userRole === 'SUPERADMIN' && (
+                    <Link
+                      href="/super"
+                      className="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
+                      title="Super Admin"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                    </Link>
+                  )}
+                  {(userRole === 'ADMIN' || userRole === 'SUPERADMIN') && (
+                    <Link
+                      href="/admin"
+                      className="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
+                      title="Admin Panel"
+                    >
+                      <Shield className="h-4 w-4" />
+                    </Link>
+                  )}
+                </>
+              )}
               <div className="w-px h-6 bg-stone-200 dark:bg-white/10 mx-1" />
             </div>
           )}
 
-          {/* Dark Mode Toggle */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400"
@@ -424,7 +540,6 @@ export default function TopBar({
             {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
 
-          {/* Help - Links to FAQ */}
           <Link
             href="/faq"
             className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-500 dark:text-stone-400"
@@ -433,7 +548,7 @@ export default function TopBar({
             <HelpCircle className="h-5 w-5" />
           </Link>
 
-          {/* Notifications - Only show when authenticated */}
+          {/* ✅ Updated Notifications with real data */}
           {isAuthenticated && (
             <div className="relative">
               <button
@@ -443,15 +558,12 @@ export default function TopBar({
               >
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
-                  <span
-                    className={`absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r ${BRAND_GRADIENT} text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm`}
-                  >
-                    {unreadCount}
+                  <span className={'absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r ' + BRAND_GRADIENT + ' text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm'}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </button>
 
-              {/* Notifications Dropdown */}
               <AnimatePresence>
                 {notificationsOpen && (
                   <motion.div
@@ -463,45 +575,58 @@ export default function TopBar({
                   >
                     <div className="p-4 border-b border-stone-200 dark:border-white/10 flex items-center justify-between">
                       <h3 className="font-semibold text-stone-900 dark:text-white text-sm">Notifications</h3>
-                      <button
-                        onClick={() => setNotificationsOpen(false)}
-                        className="text-xs font-medium transition-colors"
-                        style={{ color: NAVY }}
-                      >
-                        Mark all read
-                      </button>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={handleMarkAllRead}
+                          disabled={isMarkingAll}
+                          className="text-xs font-medium text-[#1B2A56] dark:text-[#8CA0DE] hover:underline disabled:opacity-50"
+                        >
+                          {isMarkingAll ? '...' : 'Mark all read'}
+                        </button>
+                      )}
                     </div>
                     <div className="max-h-80 overflow-y-auto">
-                      {notifications.map((notif) => (
-                        <Link
-                          key={notif.id}
-                          href={notif.link}
-                          onClick={() => setNotificationsOpen(false)}
-                          className={`block p-3 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors border-b border-stone-100 dark:border-white/5 last:border-0 ${
-                            !notif.read ? 'bg-[#1B2A56]/[0.04] dark:bg-[#1B2A56]/10' : ''
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-bold" style={{ color: NAVY }}>✓</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-stone-900 dark:text-white">{notif.title}</p>
-                              <p className="text-xs text-stone-500 dark:text-stone-400">{notif.message}</p>
-                              <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">{notif.time}</p>
-                            </div>
-                            {!notif.read && (
-                              <span className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ backgroundColor: NAVY }} />
+                      {notifications.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">No notifications</p>
+                        </div>
+                      ) : (
+                        notifications.map((notif: NotificationWithProject) => (
+                          <div
+                            key={notif.id}
+                            onClick={() => handleNotificationClick(notif)}
+                            className={'block p-3 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors cursor-pointer border-b border-stone-100 dark:border-white/5 last:border-0 ' + (
+                              !notif.isRead ? 'bg-[#1B2A56]/[0.04] dark:bg-[#1B2A56]/10' : ''
                             )}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                                {getNotificationIcon(notif.type)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-stone-900 dark:text-white">{notif.title}</p>
+                                <p className="text-xs text-stone-500 dark:text-stone-400 line-clamp-2">{notif.message}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <p className="text-xs text-stone-400 dark:text-stone-500">{formatDate(notif.createdAt)}</p>
+                                  {notif.project && (
+                                    <span className="text-xs text-stone-400 dark:text-stone-500">• {notif.project.title}</span>
+                                  )}
+                                </div>
+                              </div>
+                              {!notif.isRead && (
+                                <span className="w-2 h-2 rounded-full flex-shrink-0 mt-2 bg-[#1B2A56]" />
+                              )}
+                            </div>
                           </div>
-                        </Link>
-                      ))}
+                        ))
+                      )}
                     </div>
                     <div className="p-3 border-t border-stone-200 dark:border-white/10 text-center">
                       <Link
-                        href="/dashboard/messages"
-                        className="text-sm font-medium transition-colors"
-                        style={{ color: NAVY }}
+                        href="/dashboard/notifications"
+                        className="text-sm font-medium text-[#1B2A56] dark:text-[#8CA0DE] hover:underline"
+                        onClick={() => setNotificationsOpen(false)}
                       >
                         View all notifications
                       </Link>
@@ -512,7 +637,7 @@ export default function TopBar({
             </div>
           )}
 
-          {/* User Avatar with Dropdown - Only show when authenticated */}
+          {/* User Avatar with Dropdown */}
           {isAuthenticated ? (
             <div className="relative">
               <button
@@ -522,9 +647,7 @@ export default function TopBar({
               >
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <div
-                      className={`w-8 h-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-[#101114] shadow-sm bg-gradient-to-br ${BRAND_GRADIENT} flex items-center justify-center`}
-                    >
+                    <div className={'w-8 h-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-[#101114] shadow-sm bg-gradient-to-br ' + BRAND_GRADIENT + ' flex items-center justify-center'}>
                       {avatarUrl ? (
                         <Image
                           src={avatarUrl}
@@ -538,23 +661,15 @@ export default function TopBar({
                         <span className="text-xs font-bold text-white">{getUserInitials()}</span>
                       )}
                     </div>
-                    <div
-                      className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-[#101114]"
-                      style={{ backgroundColor: NAVY }}
-                    />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-[#101114]" style={{ backgroundColor: NAVY }} />
                   </div>
                   <span className="text-sm font-medium text-stone-600 dark:text-stone-300 hidden sm:block">
                     {getUserName()}
                   </span>
                 </div>
-                <ChevronDown
-                  className={`h-4 w-4 text-stone-400 dark:text-stone-500 hidden sm:block transition-transform duration-200 ${
-                    userDropdownOpen ? 'rotate-180' : ''
-                  }`}
-                />
+                <ChevronDown className={'h-4 w-4 text-stone-400 dark:text-stone-500 hidden sm:block transition-transform duration-200 ' + (userDropdownOpen ? 'rotate-180' : '')} />
               </button>
 
-              {/* User Dropdown */}
               <AnimatePresence>
                 {userDropdownOpen && (
                   <motion.div
@@ -567,9 +682,7 @@ export default function TopBar({
                     <div className="p-4 border-b border-stone-200 dark:border-white/10">
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          <div
-                            className={`w-10 h-10 rounded-full overflow-hidden ring-2 ring-white dark:ring-[#101114] shadow-sm bg-gradient-to-br ${BRAND_GRADIENT} flex items-center justify-center`}
-                          >
+                          <div className={'w-10 h-10 rounded-full overflow-hidden ring-2 ring-white dark:ring-[#101114] shadow-sm bg-gradient-to-br ' + BRAND_GRADIENT + ' flex items-center justify-center'}>
                             {avatarUrl ? (
                               <Image
                                 src={avatarUrl}
@@ -583,10 +696,7 @@ export default function TopBar({
                               <span className="text-sm font-bold text-white">{getUserInitials()}</span>
                             )}
                           </div>
-                          <div
-                            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-white dark:ring-[#101114]"
-                            style={{ backgroundColor: NAVY }}
-                          />
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-white dark:ring-[#101114]" style={{ backgroundColor: NAVY }} />
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-stone-900 dark:text-white truncate">{user?.name || 'User'}</p>
@@ -623,7 +733,6 @@ export default function TopBar({
               </AnimatePresence>
             </div>
           ) : (
-            // Show Login/Join buttons when not authenticated
             <div className="flex items-center gap-2 ml-2">
               <Link
                 href="/login"
@@ -633,7 +742,7 @@ export default function TopBar({
               </Link>
               <Link
                 href="/join"
-                className={`px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r ${BRAND_GRADIENT} rounded-lg transition-all hover:shadow-md active:scale-95`}
+                className={'px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r ' + BRAND_GRADIENT + ' rounded-lg transition-all hover:shadow-md active:scale-95'}
               >
                 Join
               </Link>

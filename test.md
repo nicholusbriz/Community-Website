@@ -1,0 +1,11 @@
+Test Users:
+  superadmin@devcollab.com → password123 (SUPERADMIN)
+  admin@devcollab.com → password123 (ADMIN)
+  admin2@devcollab.com → password123 (ADMIN)
+  lead@devcollab.com → password123 (PROJECT_LEAD)
+  lead2@devcollab.com → password123 (PROJECT_LEAD)
+  user@devcollab.com → password123 (USER)
+  user2@devcollab.com → password123 (USER)
+  peter@devcollab.com → password123 (USER)
+  mary@devcollab.com → password123 (USER)
+  samuel@devcollab.com → password123 (USER)
