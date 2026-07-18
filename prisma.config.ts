@@ -8,4 +8,7 @@ export default {
   },
   // Optional: Keep DATABASE_URL for your app
   // Your app will still use DATABASE_URL via prisma.ts
+  migrations: {
+    seed: 'npx tsx prisma/seed.ts',
+  },
 }

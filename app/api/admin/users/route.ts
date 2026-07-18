@@ -1,122 +1,87 @@
 // app/api/admin/users/route.ts
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getToken } from 'next-auth/jwt'
+import { requireAdminOrSuperAdmin, handleAuthError } from '@/app/lib/auth/api-utils'
 import { prisma } from '@/app/lib/prisma'
-import { getAuthUser, handleAuthError } from '@/app/lib/auth/api-utils'
-import { isSuperAdmin } from '@/app/lib/auth/roles'
+import { Prisma } from '@prisma/client'
 
-// GET - List all users (SUPERADMIN only)
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const auth = await getAuthUser(request)
-    
-    // Verify user is SUPERADMIN
-    const currentUser = await prisma.user.findUnique({
-      where: { id: auth.userId },
-      include: { role: true }
+    // ✅ Log the token to see what role is being passed
+    const token = await getToken({
+      req: request as any,
+      secret: process.env.NEXTAUTH_SECRET,
     })
-
-    if (!currentUser || !isSuperAdmin(currentUser.role?.name)) {
-      return NextResponse.json({ error: 'Unauthorized - SUPERADMIN only' }, { status: 403 })
+    console.log('🔍 Token from request:', token)
+    console.log('🔍 User role from token:', token?.role)
+    
+    // ✅ Now try to get the auth user
+    const auth = await requireAdminOrSuperAdmin(request)
+    console.log('✅ Auth user:', auth.user.email, 'Role:', auth.role)
+    
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const search = searchParams.get('search') || ''
+    const roleFilter = searchParams.get('role') || ''
+    
+    const skip = (page - 1) * limit
+    
+    // Build where clause
+    const where: Prisma.UserWhereInput = {}
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { username: { contains: search, mode: 'insensitive' } },
+      ]
     }
-
-    // Get all users with their roles
+    
+    // Filter by role (excluding PROJECT_LEAD from admin panel results)
+    if (roleFilter) {
+      where.role = { name: roleFilter }
+    }
+    
+    // If no role filter is applied, we still include all users
+    // but the frontend will handle filtering out PROJECT_LEAD from the dropdown
+    
     const users = await prisma.user.findMany({
-      include: { role: true },
+      where,
+      skip,
+      take: limit,
+      include: {
+        role: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          }
+        },
+        _count: {
+          select: {
+            projectsCreated: true,
+            projectsOwned: true,
+            memberships: true,
+          }
+        }
+      },
       orderBy: { createdAt: 'desc' }
     })
-
-    return NextResponse.json({ users })
-  } catch (error) {
-    return handleAuthError(error)
-  }
-}
-
-// PUT - Update user role (SUPERADMIN only)
-export async function PUT(request: Request) {
-  try {
-    const auth = await getAuthUser(request)
     
-    // Verify user is SUPERADMIN
-    const currentUser = await prisma.user.findUnique({
-      where: { id: auth.userId },
-      include: { role: true }
-    })
-
-    if (!currentUser || !isSuperAdmin(currentUser.role?.name)) {
-      return NextResponse.json({ error: 'Unauthorized - SUPERADMIN only' }, { status: 403 })
-    }
-
-    const body = await request.json()
-    const { userId, newRole } = body
-
-    if (!userId || !newRole) {
-      return NextResponse.json({ error: 'userId and newRole are required' }, { status: 400 })
-    }
-
-    // Verify the new role exists
-    const role = await prisma.role.findUnique({
-      where: { name: newRole }
-    })
-
-    if (!role) {
-      return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
-    }
-
-    // Prevent superadmin from changing their own role
-    if (userId === auth.userId) {
-      return NextResponse.json({ error: 'Cannot change your own role' }, { status: 400 })
-    }
-
-    // Update user role
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: { roleId: role.id },
-      include: { role: true }
-    })
-
-    return NextResponse.json({ 
-      message: 'User role updated successfully',
-      user: updatedUser
-    })
-  } catch (error) {
-    return handleAuthError(error)
-  }
-}
-
-// DELETE - Delete user (SUPERADMIN only)
-export async function DELETE(request: Request) {
-  try {
-    const auth = await getAuthUser(request)
+    const total = await prisma.user.count({ where })
     
-    // Verify user is SUPERADMIN
-    const currentUser = await prisma.user.findUnique({
-      where: { id: auth.userId },
-      include: { role: true }
+    return NextResponse.json({
+      users,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
     })
-
-    if (!currentUser || !isSuperAdmin(currentUser.role?.name)) {
-      return NextResponse.json({ error: 'Unauthorized - SUPERADMIN only' }, { status: 403 })
-    }
-
-    const body = await request.json()
-    const { userId } = body
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 })
-    }
-
-    // Prevent superadmin from deleting themselves
-    if (userId === auth.userId) {
-      return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 })
-    }
-
-    // Delete user
-    await prisma.user.delete({
-      where: { id: userId }
-    })
-
-    return NextResponse.json({ message: 'User deleted successfully' })
   } catch (error) {
+    console.error('❌ Error in admin/users route:', error)
     return handleAuthError(error)
   }
 }

@@ -8,7 +8,7 @@ import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { Pool } from "pg"
 import bcrypt from "bcryptjs"
-import type { NextAuthOptions } from "next-auth"
+import type { NextAuthOptions, User as NextAuthUser } from "next-auth"
 import { UserRole } from "./roles"
 
 // Create a PostgreSQL connection pool
@@ -95,7 +95,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role.name,
+            role: user.role.name as UserRole,
             roleId: user.roleId,
           }
         }
@@ -124,7 +124,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role.name,
+          role: user.role.name as UserRole,
           roleId: user.roleId,
         }
       }
@@ -134,7 +134,8 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
-        token.role = user.role
+        // ✅ Cast role to UserRole
+        token.role = user.role as UserRole
         token.email = user.email
         token.name = user.name
         token.image = user.image
@@ -149,7 +150,8 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.role = token.role as string
+        // ✅ Cast role to UserRole
+        session.user.role = token.role as UserRole
         session.user.email = token.email as string
         session.user.name = token.name as string
         session.user.image = token.image as string | null

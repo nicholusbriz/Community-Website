@@ -1,680 +1,527 @@
 // app/dashboard/profile/page.tsx
-'use client'
+'use client';
 
-import { useState, useEffect, useRef } from 'react'
-import { Camera, Plus, Link as LinkIcon, Bell, Shield, Lock, Mail, MapPin, Users, ArrowLeft, Loader2, Check, X, Save, Trash2, User, Globe, Briefcase, Award } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/app/lib/auth/useAuth'
-import Image from 'next/image'
-import { ProfileSkeleton } from './ui/ProfileSkeleton'  // ✅ Import skeleton
+import { useState, useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { 
+  User, 
+  Mail, 
+  Calendar, 
+  Settings, 
+  LogOut,
+  Camera,
+  Save,
+  X,
+  Check,
+  AlertCircle,
+  Loader2
+} from 'lucide-react';
+import { ProfileSkeleton } from './ui/ProfileSkeleton'; // ✅ Import the skeleton
 
-interface UserProfile {
-  id: string
-  name: string
-  email: string
-  image: string | null
-  role: string
-  username: string | null
-  bio: string | null
-  location: string | null
-  skills: string[]
-  github: string | null
-  linkedin: string | null
-  portfolio: string | null
+// Define types for the form data
+interface ProfileFormData {
+  name: string;
+  email: string;
+  bio: string;
+  location: string;
+  website: string;
+  github: string;
+  twitter: string;
+}
+
+// Define a type for the user with custom fields
+interface CustomUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  bio?: string | null;
+  location?: string | null;
+  website?: string | null;
+  github?: string | null;
+  twitter?: string | null;
+  role?: string;
 }
 
 export default function ProfilePage() {
-  const router = useRouter()
-  const { user, status } = useAuth()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { data: session, status, update } = useSession();
+  const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [success, setSuccess] = useState('')
-  const [error, setError] = useState('')
-  
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [formData, setFormData] = useState({
+  // Form state
+  const [formData, setFormData] = useState<ProfileFormData>({
     name: '',
-    username: '',
+    email: '',
     bio: '',
     location: '',
-    skills: [] as string[],
+    website: '',
     github: '',
-    linkedin: '',
-    portfolio: '',
-  })
-  const [newSkill, setNewSkill] = useState('')
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+    twitter: '',
+  });
 
-  // Notification settings
-  const [notifications, setNotifications] = useState({
-    comments: true,
-    joinRequests: true,
-    messages: true,
-    projectUpdates: true,
-  })
-
-  // Password change state
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  })
-
-  const commonSkills = ['React', 'TypeScript', 'Next.js', 'Vue', 'Python', 'Node.js', 'Django', 'Go', 'Rust', 'Swift', 'GraphQL', 'MongoDB', 'PostgreSQL']
-
-  // Load user profile data
+  // Load user data from session
   useEffect(() => {
-    if (status === 'authenticated' && user) {
-      fetchProfile()
-    }
-  }, [status, user])
-
-  const fetchProfile = async () => {
-    try {
-      const response = await fetch('/api/profile')
-      if (!response.ok) throw new Error('Failed to fetch profile')
-      const data = await response.json()
-      setProfile(data)
+    if (status === 'authenticated' && session?.user) {
+      const user = session.user as CustomUser;
       setFormData({
-        name: data.name || '',
-        username: data.username || '',
-        bio: data.bio || '',
-        location: data.location || '',
-        skills: data.skills || [],
-        github: data.github || '',
-        linkedin: data.linkedin || '',
-        portfolio: data.portfolio || '',
-      })
-      setImagePreview(data.image)
-    } catch (error) {
-      console.error('Error fetching profile:', error)
-      setError('Failed to load profile data')
-    } finally {
-      setLoading(false)
+        name: user.name || '',
+        email: user.email || '',
+        bio: user.bio || '',
+        location: user.location || '',
+        website: user.website || '',
+        github: user.github || '',
+        twitter: user.twitter || '',
+      });
     }
+  }, [status, session]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+    }
+  }, [status, router]);
+
+  // ✅ Show skeleton while loading
+  if (status === 'loading') {
+    return <ProfileSkeleton />;
   }
 
-  // Handle profile update
+  if (status === 'unauthenticated') {
+    return null;
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setError('')
-    setSuccess('')
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
 
     try {
       const response = await fetch('/api/profile', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          bio: formData.bio,
+          location: formData.location,
+          website: formData.website,
+          github: formData.github,
+          linkedin: formData.twitter,
+        }),
+      });
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to update profile')
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to update profile');
       }
 
-      const updated = await response.json()
-      setProfile(updated)
-      setSuccess('Profile updated successfully!')
-      setTimeout(() => setSuccess(''), 3000)
+      const data = await response.json();
+      setSuccess('Profile updated successfully!');
+      setIsEditing(false);
+      
+      await update();
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setSaving(false)
+      setLoading(false);
     }
-  }
+  };
 
-  // Handle avatar upload
-  const handleAvatarUpload = async (file: File) => {
-    setUploading(true)
-    setError('')
-    setSuccess('')
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const formData = new FormData()
-    formData.append('file', file)
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      setError('Invalid file type. Please upload JPEG, PNG, WEBP, or GIF.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File too large. Maximum size is 5MB.');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setError(null);
 
     try {
+      const formData = new FormData();
+      formData.append('file', file);
+
       const response = await fetch('/api/profile/upload-avatar', {
         method: 'POST',
         body: formData,
-      })
+      });
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to upload avatar')
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to upload avatar');
       }
 
-      const data = await response.json()
-      setImagePreview(data.url)
-      setProfile(prev => prev ? { ...prev, image: data.url } : null)
+      const data = await response.json();
+      await update();
+      setSuccess('Avatar updated successfully!');
       
-      setSuccess('Avatar updated successfully!')
-      setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload avatar')
+      setError(err instanceof Error ? err.message : 'Failed to upload avatar');
     } finally {
-      setUploading(false)
+      setUploadingAvatar(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
-  }
+  };
 
-  // Handle avatar delete
   const handleAvatarDelete = async () => {
-    if (!confirm('Are you sure you want to remove your profile picture?')) return
+    if (!confirm('Are you sure you want to remove your avatar?')) return;
 
-    setDeleting(true)
-    setError('')
-    setSuccess('')
+    setUploadingAvatar(true);
+    setError(null);
 
     try {
       const response = await fetch('/api/profile/delete-avatar', {
         method: 'DELETE',
-      })
+      });
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to delete avatar')
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete avatar');
       }
 
-      setImagePreview(null)
-      setProfile(prev => prev ? { ...prev, image: null } : null)
+      await update();
+      setSuccess('Avatar removed successfully!');
       
-      setSuccess('Avatar removed successfully!')
-      setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete avatar')
+      setError(err instanceof Error ? err.message : 'Failed to delete avatar');
     } finally {
-      setDeleting(false)
+      setUploadingAvatar(false);
     }
-  }
+  };
 
-  // Handle file selection
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      handleAvatarUpload(file)
+  const handleCancel = () => {
+    setIsEditing(false);
+    if (session?.user) {
+      const user = session.user as CustomUser;
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        bio: user.bio || '',
+        location: user.location || '',
+        website: user.website || '',
+        github: user.github || '',
+        twitter: user.twitter || '',
+      });
     }
-    e.target.value = ''
-  }
+    setError(null);
+    setSuccess(null);
+  };
 
-  // Handle password update
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
+  const user = session?.user as CustomUser | undefined;
 
-    setSaving(true)
-    setError('')
-    setSuccess('')
-
-    try {
-      const response = await fetch('/api/profile/password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword,
-        }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to update password')
-      }
-
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      })
-      setSuccess('Password updated successfully!')
-      setTimeout(() => setSuccess(''), 3000)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update password')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const addSkill = () => {
-    if (newSkill && !formData.skills.includes(newSkill)) {
-      setFormData({ ...formData, skills: [...formData.skills, newSkill] })
-      setNewSkill('')
-    }
-  }
-
-  const removeSkill = (skill: string) => {
-    setFormData({ ...formData, skills: formData.skills.filter(s => s !== skill) })
-  }
-
-  // ✅ Use skeleton while loading
-  if (loading || status === 'loading') {
-    return <ProfileSkeleton />
-  }
-
-  // ✅ Show actual content
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
-      {/* Back Button */}
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Dashboard
-      </Link>
-
+    <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">My Profile</h1>
-          <p className="text-slate-600 mt-1">Manage your personal information and preferences</p>
+          <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
+          <p className="text-gray-600 mt-1">Manage your personal information</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className={`px-4 py-2 text-sm font-semibold rounded-full shadow-sm ${
-            profile?.role === 'SUPERADMIN' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' :
-            profile?.role === 'ADMIN' ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white' :
-            'bg-gradient-to-r from-slate-500 to-slate-600 text-white'
-          }`}>
-            {profile?.role || 'USER'}
-          </span>
-        </div>
+        {!isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <Settings className="w-4 h-4" />
+            Edit Profile
+          </button>
+        )}
       </div>
 
-      {/* Success/Error Messages */}
-      {success && (
-        <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl text-emerald-700 shadow-sm">
-          <Check className="w-5 h-5" />
-          <span className="font-medium">{success}</span>
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
+          <AlertCircle className="w-5 h-5" />
+          {error}
         </div>
       )}
-      {error && (
-        <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-xl text-red-700 shadow-sm">
-          <X className="w-5 h-5" />
-          <span className="font-medium">{error}</span>
+      
+      {success && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3 text-green-700">
+          <Check className="w-5 h-5" />
+          {success}
         </div>
       )}
 
-      {/* Profile Form */}
-      <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl p-8 space-y-8 shadow-xl shadow-indigo-100/50">
-        {/* Avatar */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <User className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-semibold text-lg text-slate-900">Profile Picture</h3>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <div className="w-28 h-28 rounded-2xl overflow-hidden border-4 border-white shadow-lg bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center">
-                {imagePreview ? (
+      {/* Profile Card */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        {/* Cover Image */}
+        <div className="h-32 bg-gradient-to-r from-blue-500 to-purple-600 relative">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarUpload}
+            className="hidden"
+          />
+        </div>
+
+        {/* Profile Info */}
+        <div className="px-6 pb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12">
+            {/* Avatar with upload button */}
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-full border-4 border-white bg-gray-200 overflow-hidden">
+                {user?.image ? (
                   <Image
-                    src={imagePreview}
-                    alt={formData.name || 'Profile'}
-                    width={112}
-                    height={112}
+                    src={user.image}
+                    alt={user.name || 'User'}
+                    width={96}
+                    height={96}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-4xl font-bold text-indigo-600">
-                    {formData.name?.[0]?.toUpperCase() || '👤'}
-                  </span>
-                )}
-                {(uploading || deleting) && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
-                    <Loader2 className="w-6 h-6 animate-spin text-white" />
+                  <div className="w-full h-full flex items-center justify-center bg-blue-100">
+                    <User className="w-12 h-12 text-blue-600" />
                   </div>
                 )}
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </div>
-            <div className="flex flex-col gap-3">
+              
               <button
-                type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading || deleting}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl text-sm font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all shadow-md shadow-indigo-200 disabled:opacity-50"
+                disabled={uploadingAvatar}
+                className="absolute bottom-0 right-0 p-1.5 bg-blue-600 rounded-full text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+                title="Upload avatar"
               >
-                <Camera className="w-4 h-4" />
-                {uploading ? 'Uploading...' : 'Change Photo'}
+                {uploadingAvatar ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
               </button>
-              {imagePreview && (
+
+              {user?.image && (
                 <button
-                  type="button"
                   onClick={handleAvatarDelete}
-                  disabled={uploading || deleting}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-red-200 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
+                  disabled={uploadingAvatar}
+                  className="absolute -top-1 -right-1 p-1 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+                  title="Remove avatar"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  {deleting ? 'Removing...' : 'Remove Photo'}
+                  <X className="w-3 h-3" />
                 </button>
               )}
             </div>
-          </div>
-          <p className="text-sm text-slate-500">Profile pictures are publicly visible. Max size: 5MB. Recommended: 400x400px.</p>
-        </div>
 
-        {/* Basic Info */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <User className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-semibold text-lg text-slate-900">Basic Information</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Display Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white/50"
-                placeholder="John Doe"
-              />
+            {/* Name and Email */}
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {user?.name || 'User'}
+              </h2>
+              <p className="text-gray-600 flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                {user?.email || 'No email'}
+              </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Username <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                required
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white/50"
-                placeholder="@johndoe"
-              />
+            {/* Member Since */}
+            <div className="text-sm text-gray-500 flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Member since {new Date().getFullYear()}
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Bio</label>
-            <textarea
-              value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              rows={4}
-              maxLength={500}
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none bg-white/50"
-              placeholder="Tell us about yourself..."
-            />
-            <p className="text-sm text-slate-500 mt-2">{formData.bio.length}/500 characters</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Location</label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="City, Country"
-                className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white/50"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Skills */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-semibold text-lg text-slate-900">Skills & Expertise</h3>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Add Skill</label>
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={newSkill}
-                onChange={(e) => setNewSkill(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addSkill()}
-                placeholder="Type a skill and press Enter"
-                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white/50"
-              />
-              <button
-                type="button"
-                onClick={addSkill}
-                className="px-5 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:from-indigo-600 hover:to-purple-600 transition-all shadow-md shadow-indigo-200"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Common Skills</label>
-            <div className="flex flex-wrap gap-2">
-              {commonSkills.map((skill) => (
-                <button
-                  key={skill}
-                  type="button"
-                  onClick={() => !formData.skills.includes(skill) && setFormData({ ...formData, skills: [...formData.skills, skill] })}
-                  disabled={formData.skills.includes(skill)}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                    formData.skills.includes(skill)
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          {/* Edit Form */}
+          <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className={`w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors ${
+                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
                   }`}
-                >
-                  {skill}
-                </button>
-              ))}
-            </div>
-          </div>
+                />
+              </div>
 
-          {formData.skills.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2">
-              {formData.skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 rounded-full text-sm font-semibold border border-indigo-200"
-                >
-                  {skill}
-                  <button
-                    type="button"
-                    onClick={() => removeSkill(skill)}
-                    className="hover:text-indigo-900 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  disabled
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed"
+                />
+                <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+              </div>
 
-        {/* Social Links */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Globe className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-semibold text-lg text-slate-900">Social Links</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">GitHub</label>
-              <div className="relative">
-                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              {/* Bio */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Bio
+                </label>
+                <textarea
+                  name="bio"
+                  value={formData.bio}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  rows={3}
+                  placeholder="Tell us about yourself..."
+                  className={`w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors resize-none ${
+                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                  }`}
+                />
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  placeholder="City, Country"
+                  className={`w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors ${
+                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                  }`}
+                />
+              </div>
+
+              {/* Website */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Website
+                </label>
                 <input
                   type="url"
+                  name="website"
+                  value={formData.website}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  placeholder="https://your-website.com"
+                  className={`w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors ${
+                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                  }`}
+                />
+              </div>
+
+              {/* GitHub */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  GitHub
+                </label>
+                <input
+                  type="url"
+                  name="github"
                   value={formData.github}
-                  onChange={(e) => setFormData({ ...formData, github: e.target.value })}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
                   placeholder="https://github.com/username"
-                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white/50"
+                  className={`w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors ${
+                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">LinkedIn</label>
-              <div className="relative">
-                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              {/* LinkedIn */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  LinkedIn
+                </label>
                 <input
                   type="url"
-                  value={formData.linkedin}
-                  onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                  name="twitter"
+                  value={formData.twitter}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
                   placeholder="https://linkedin.com/in/username"
-                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white/50"
+                  className={`w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors ${
+                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Portfolio</label>
-              <div className="relative">
-                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="url"
-                  value={formData.portfolio}
-                  onChange={(e) => setFormData({ ...formData, portfolio: e.target.value })}
-                  placeholder="https://yourportfolio.com"
-                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white/50"
-                />
+            {/* Action Buttons */}
+            {isEditing && (
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-6 py-2.5 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
               </div>
-            </div>
-          </div>
+            )}
+          </form>
         </div>
+      </div>
 
-        {/* Notification Settings */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-semibold text-lg text-slate-900">Notification Settings</h3>
-          </div>
-          
-          <div className="space-y-3">
-            {[
-              { key: 'comments', label: 'Project comments', icon: Bell },
-              { key: 'joinRequests', label: 'Join requests', icon: Users },
-              { key: 'messages', label: 'Messages', icon: Mail },
-              { key: 'projectUpdates', label: 'Project updates', icon: Shield },
-            ].map((item) => {
-              const Icon = item.icon
-              return (
-                <div key={item.key} className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-indigo-50 rounded-xl border border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-5 h-5 text-indigo-600" />
-                    <span className="font-semibold text-slate-700">{item.label}</span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications[item.key as keyof typeof notifications]}
-                      onChange={(e) => setNotifications({ ...notifications, [item.key]: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-indigo-500 peer-checked:to-purple-500"></div>
-                  </label>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-200">
-          <Link
-            href="/dashboard"
-            className="px-6 py-3 border-2 border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all text-center"
-          >
-            Cancel
-          </Link>
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl text-sm font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
-      </form>
-
-      {/* Change Password Section */}
-      <div className="bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl p-8 shadow-xl shadow-indigo-100/50">
-        <div className="flex items-center gap-2 mb-6">
-          <Lock className="w-5 h-5 text-indigo-600" />
-          <h3 className="font-semibold text-lg text-slate-900">Change Password</h3>
-        </div>
-        
-        <form onSubmit={handlePasswordSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Current Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="password"
-                value={passwordData.currentPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                required
-                className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white/50"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              New Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="password"
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                required
-                minLength={6}
-                className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white/50"
-              />
-            </div>
-            <p className="text-sm text-slate-500 mt-2">Minimum 6 characters</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Confirm New Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="password"
-                value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                required
-                className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white/50"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full px-6 py-3 bg-gradient-to-r from-slate-700 to-slate-900 text-white rounded-xl text-sm font-semibold hover:from-slate-800 hover:to-slate-950 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-            {saving ? 'Updating...' : 'Update Password'}
-          </button>
-        </form>
+      {/* Danger Zone */}
+      <div className="mt-8 bg-white rounded-2xl border border-red-200 shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-red-700 flex items-center gap-2">
+          <AlertCircle className="w-5 h-5" />
+          Danger Zone
+        </h3>
+        <p className="text-sm text-gray-600 mt-2">
+          Once you delete your account, there is no going back. Please be certain.
+        </p>
+        <button
+          onClick={() => {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+              console.log('Delete account');
+            }
+          }}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+        >
+          <LogOut className="w-4 h-4" />
+          Delete Account
+        </button>
       </div>
     </div>
-  )
+  );
 }

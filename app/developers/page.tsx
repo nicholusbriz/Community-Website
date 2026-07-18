@@ -1,315 +1,296 @@
-'use client';
+// app/developers/page.tsx
+'use client'
 
-import { useState, type ReactNode } from 'react';
-import { Filter, ArrowRight, Star, Database, Table, Users, Search, Code2, Award, Shield, User, Crown } from 'lucide-react';
-import Link from 'next/link'; // ✅ Added Link import
-// ❌ REMOVED: import PublicLayout from '../PublicLayout';
-
-function PageShell({ children }: { children: ReactNode }) {
-  return <div className="min-h-screen bg-gray-50 text-black">{children}</div>;
-}
-
-function PageHeader({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{title}</h1>
-      <p className="mt-2 max-w-2xl text-lg text-gray-600">{description}</p>
-    </div>
-  );
-}
-
-function FilterBar({ searchValue, onSearchChange, searchPlaceholder, filters }: { searchValue: string; onSearchChange: (value: string) => void; searchPlaceholder: string; filters: ReactNode }) {
-  return (
-    <div className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:flex-row md:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            value={searchValue}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder={searchPlaceholder}
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm outline-none ring-0 focus:border-[#0070f3] focus:ring-2 focus:ring-[#0070f3]/20"
-          />
-        </div>
-        <div className="flex flex-wrap gap-3">{filters}</div>
-      </div>
-    </div>
-  );
-}
-
-function DeveloperCard({ name, role, skills, projects, stars, username, isActive }: { name: string; role: string; skills: string[]; projects: number; stars: number; username: string; isActive?: boolean }) {
-  return (
-    <Link href={`/developer/${username}`} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl block">
-      <div className="mb-4 flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#0070f3] to-[#7928ca] font-semibold text-white">
-            {name.charAt(0)}
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{name}</h3>
-            <p className="text-sm text-gray-600">{role}</p>
-          </div>
-        </div>
-        {isActive && <span className="text-sm text-green-600">● Active</span>}
-      </div>
-      <div className="mb-4 flex flex-wrap gap-2">
-        {skills.map((skill) => (
-          <span key={skill} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
-            {skill}
-          </span>
-        ))}
-      </div>
-      <div className="flex items-center justify-between text-sm text-gray-600">
-        <span>{projects} projects</span>
-        <span>{stars} stars</span>
-      </div>
-    </Link>
-  );
-}
+import { useState } from 'react'
+import { useUsersDirectory } from '@/app/lib/hooks/useUsersDirectory'
+import Link from 'next/link'
+import { 
+  Search, 
+  X, 
+  Filter, 
+  Users, 
+  Database, 
+  Table,
+  MapPin,
+  FolderGit2,
+  User,
+  Shield,
+  Crown,
+  Code2,
+  Star,
+  ArrowRight,
+  GitBranch,
+  Link2,
+  Globe
+} from 'lucide-react'
 
 export default function DevelopersPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRole, setSelectedRole] = useState('All Roles');
-  const [sortBy, setSortBy] = useState('Most Active');
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const [skillFilter, setSkillFilter] = useState('')
+  const limit = 12
 
-  // ============================================================
-  // 📊 DATA SOURCE: users table (ALL USERS)
-  // 🔗 API: GET /api/users?limit=20&page=1
-  // ============================================================
-  const users = [
-    { id: 1, name: 'Alex Rivera', username: 'alexrivera', role: 'superadmin', skills: ['React', 'Next.js', 'Node.js', 'AWS'], projects: 15, stars: 89, isActive: true },
-    { id: 2, name: 'Sarah Johnson', username: 'sarahjohnson', role: 'admin', skills: ['React', 'TypeScript', 'Python'], projects: 12, stars: 45, isActive: true },
-    { id: 3, name: 'Mike Chen', username: 'mikechen', role: 'admin', skills: ['Next.js', 'Node.js', 'Docker'], projects: 10, stars: 32, isActive: true },
-    { id: 4, name: 'Emily Rodriguez', username: 'emilyrodriguez', role: 'user', skills: ['Figma', 'TypeScript'], projects: 8, stars: 28, isActive: true },
-    { id: 5, name: 'David Kim', username: 'davidkim', role: 'user', skills: ['Docker', 'AWS', 'Kubernetes'], projects: 6, stars: 21, isActive: true },
-    { id: 6, name: 'Lisa Thompson', username: 'lisathompson', role: 'user', skills: ['Agile', 'Scrum', 'Jira'], projects: 10, stars: 18, isActive: true },
-    { id: 7, name: 'James Wilson', username: 'jameswilson', role: 'user', skills: ['Vue', 'Python', 'Django'], projects: 4, stars: 15, isActive: true },
-    { id: 8, name: 'Priya Patel', username: 'priyapatel', role: 'user', skills: ['React Native', 'Firebase'], projects: 7, stars: 24, isActive: true },
-  ];
+  const { data, isLoading, error, refetch } = useUsersDirectory({
+    page,
+    limit,
+    search,
+  })
 
-  const roles = ['All Roles', 'superadmin', 'admin', 'user'];
-  const skills = ['All Skills', 'React', 'TypeScript', 'Next.js', 'Node.js', 'Python', 'Docker', 'AWS', 'Figma', 'Vue', 'Firebase'];
-  const sortOptions = ['Most Active', 'Most Projects', 'Most Stars', 'Newest'];
-
-  const totalStats = {
-    total: 156,
-    superadmin: 3,
-    admin: 12,
-    user: 141,
-    newThisWeek: 12
-  };
-
-  const getRoleIcon = (role: string) => {
-    switch(role) {
-      case 'superadmin': return <Crown className="w-4 h-4 text-yellow-500" />;
-      case 'admin': return <Shield className="w-4 h-4 text-blue-500" />;
-      default: return <User className="w-4 h-4 text-gray-500" />;
+  // Get role badge color
+  const getRoleBadgeColor = (roleName: string) => {
+    switch(roleName) {
+      case 'SUPERADMIN':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+      case 'ADMIN':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+      case 'PROJECT_LEAD':
+        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
     }
-  };
+  }
 
-  const getRoleBadgeColor = (role: string) => {
-    switch(role) {
-      case 'superadmin': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'admin': return 'bg-blue-50 text-blue-700 border-blue-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+  // Get role icon
+  const getRoleIcon = (roleName: string) => {
+    switch(roleName) {
+      case 'SUPERADMIN':
+        return <Crown className="h-4 w-4 text-yellow-500" />
+      case 'ADMIN':
+        return <Shield className="h-4 w-4 text-blue-500" />
+      default:
+        return <User className="h-4 w-4 text-gray-500" />
     }
-  };
+  }
 
-  const totalPages = Math.ceil(totalStats.total / 20);
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-stone-500 dark:text-stone-400">Loading developers...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/20 rounded-lg">
+          <p className="text-red-600 dark:text-red-400">Error loading developers: {error.message}</p>
+          <button 
+            onClick={() => refetch()}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const users = data?.users || []
+  const pagination = data?.pagination
 
   return (
-    <div className="min-h-screen bg-gray-50 text-black">
-      {/* ===== HEADER SECTION ===== */}
-      <div className="flex items-center gap-2 mb-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <span className="text-xs font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">Static Content</span>
-        <span className="text-xs text-gray-400">|</span>
-        <span className="text-xs text-gray-500">No API fetch required</span>
-      </div>
-      <PageHeader 
-        title="Community Members" 
-        description="Discover and connect with all members in our community" 
-      />
-
-      {/* ===== STATS SECTION ===== */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2 mb-4">
-          <Database className="w-4 h-4 text-blue-600" />
-          <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Data Source: users table</span>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3">
+          <Users className="h-8 w-8 text-[#1B2A56] dark:text-[#8CA0DE]" />
+          <div>
+            <h1 className="text-2xl font-bold text-stone-900 dark:text-white">
+              Developers
+            </h1>
+            <p className="text-stone-500 dark:text-stone-400">
+              Connect with talented developers in the community
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 mt-2">
+          <Database className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full dark:bg-blue-900/30 dark:text-blue-400">
+            Live Data: users table
+          </span>
           <span className="text-xs text-gray-400">|</span>
-          <span className="text-xs text-gray-500">GET /api/users/stats</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-gray-200 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-indigo-600">{totalStats.total}</div>
-            <p className="text-xs text-gray-600">Total Members</p>
-          </div>
-          <div className="bg-gradient-to-br from-yellow-50 to-amber-50 border border-gray-200 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">{totalStats.superadmin}</div>
-            <p className="text-xs text-gray-600">Super Admins</p>
-          </div>
-          <div className="bg-gradient-to-br from-blue-50 to-sky-50 border border-gray-200 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{totalStats.admin}</div>
-            <p className="text-xs text-gray-600">Admins</p>
-          </div>
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-gray-200 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{totalStats.user}</div>
-            <p className="text-xs text-gray-600">Users</p>
-          </div>
-          <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-gray-200 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">{totalStats.newThisWeek}</div>
-            <p className="text-xs text-gray-600">New This Week</p>
-          </div>
+          <span className="text-xs text-gray-500">GET /api/users</span>
         </div>
       </div>
 
-      {/* ===== FILTER BAR SECTION ===== */}
-      <div className="flex items-center gap-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-        <Table className="w-4 h-4 text-green-600" />
-        <span className="text-xs font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full">Data Source: users table (filter options)</span>
-        <span className="text-xs text-gray-400">|</span>
-        <span className="text-xs text-gray-500">GET /api/users/roles & /api/users/skills</span>
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500" />
+          <input
+            type="text"
+            placeholder="Search developers by name, username, or bio..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#1e1e1e] border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 dark:focus:ring-[#8CA0DE]/30 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-stone-100 dark:hover:bg-white/5 text-stone-400 dark:text-stone-500"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        
+        <div className="sm:w-48 relative">
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500" />
+          <select
+            value={skillFilter}
+            onChange={(e) => setSkillFilter(e.target.value)}
+            className="w-full pl-10 pr-3 py-2 bg-white dark:bg-[#1e1e1e] border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white appearance-none"
+          >
+            <option value="">All Skills</option>
+            <option value="React">React</option>
+            <option value="Node.js">Node.js</option>
+            <option value="Python">Python</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="Next.js">Next.js</option>
+            <option value="Tailwind CSS">Tailwind CSS</option>
+            <option value="Docker">Docker</option>
+            <option value="AWS">AWS</option>
+            <option value="MongoDB">MongoDB</option>
+            <option value="PostgreSQL">PostgreSQL</option>
+            <option value="Prisma">Prisma</option>
+          </select>
+        </div>
       </div>
-      <FilterBar
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="Search members by name, skills, or role..."
-        filters={
-          <>
-            <div className="relative">
-              <select
-                value={selectedRole}
-                onChange={(event) => setSelectedRole(event.target.value)}
-                className="appearance-none rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10 focus:border-[#0070f3] focus:outline-none focus:ring-2 focus:ring-[#0070f3]/20"
-              >
-                {roles.map((role) => (
-                  <option key={role} value={role}>
-                    {role === 'All Roles' ? 'All Roles' : role.charAt(0).toUpperCase() + role.slice(1)}
-                  </option>
-                ))}
-              </select>
-              <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            </div>
 
-            <div className="relative">
-              <select
-                value={selectedRole}
-                onChange={(event) => setSelectedRole(event.target.value)}
-                className="appearance-none rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10 focus:border-[#0070f3] focus:outline-none focus:ring-2 focus:ring-[#0070f3]/20"
-              >
-                {skills.map((skill) => (
-                  <option key={skill} value={skill}>{skill}</option>
-                ))}
-              </select>
-              <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            </div>
-
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(event) => setSortBy(event.target.value)}
-                className="appearance-none rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10 focus:border-[#0070f3] focus:outline-none focus:ring-2 focus:ring-[#0070f3]/20"
-              >
-                {sortOptions.map((option) => (
-                  <option key={option} value={option}>Sort: {option}</option>
-                ))}
-              </select>
-              <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            </div>
-          </>
-        }
-      />
-
-      {/* ===== USERS GRID SECTION ===== */}
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      {/* Results Count */}
+      {pagination && (
         <div className="flex items-center gap-2 mb-4">
-          <Table className="w-4 h-4 text-indigo-600" />
-          <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Data Source: users table</span>
-          <span className="text-xs text-gray-400">|</span>
-          <span className="text-xs text-gray-500">GET /api/users?limit=20&page=1</span>
+          <Table className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+          <span className="text-sm text-stone-500 dark:text-stone-400">
+            Showing {users.length} of {pagination.total} developers
+          </span>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {users.map((user) => (
-            <div key={user.id} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-xl transition-all">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0070f3] to-[#7928ca] flex items-center justify-center text-white font-bold text-lg">
-                    {user.name.charAt(0)}
+      )}
+
+      {/* Developer Grid */}
+      {users.length === 0 ? (
+        <div className="text-center py-12 bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10">
+          <Users className="h-12 w-12 text-stone-400 dark:text-stone-500 mx-auto mb-3" />
+          <p className="text-stone-500 dark:text-stone-400">No developers found</p>
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="mt-2 text-[#1B2A56] dark:text-[#8CA0DE] hover:underline"
+            >
+              Clear search
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {users.map((user: any) => (
+            <Link
+              key={user.id}
+              // ✅ Use ID for the URL
+              href={`/developers/${user.id}`}
+              className="group block bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6 hover:shadow-md hover:border-[#1B2A56]/30 dark:hover:border-[#8CA0DE]/30 transition-all duration-200"
+            >
+              <div className="flex items-start gap-4">
+                {/* Avatar */}
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#0B0F1A] via-[#16223F] to-[#1B2A56] text-white flex items-center justify-center text-lg font-bold flex-shrink-0">
+                  {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U'}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-stone-900 dark:text-white truncate">
+                      {user.name || 'Unknown User'}
+                    </h3>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role?.name || 'USER')}`}>
+                      {user.role?.name || 'USER'}
+                    </span>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{user.name}</h3>
-                    <div className="flex items-center gap-1">
-                      {getRoleIcon(user.role)}
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${getRoleBadgeColor(user.role)}`}>
-                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                      </span>
+                  
+                  {/* ✅ Show username if available, otherwise show email */}
+                  <p className="text-sm text-stone-500 dark:text-stone-400 truncate">
+                    {user.username ? `@${user.username}` : user.email}
+                  </p>
+                  
+                  {user.bio && (
+                    <p className="text-sm text-stone-600 dark:text-stone-300 mt-1 line-clamp-2">
+                      {user.bio}
+                    </p>
+                  )}
+                  
+                  {user.location && (
+                    <div className="flex items-center gap-1 mt-2 text-xs text-stone-400 dark:text-stone-500">
+                      <MapPin className="h-3 w-3" />
+                      {user.location}
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center gap-3 mt-3">
+                    <div className="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
+                      <FolderGit2 className="h-3 w-3" />
+                      {user._count?.projectsCreated || 0} projects
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
+                      <Users className="h-3 w-3" />
+                      {user._count?.memberships || 0} memberships
                     </div>
                   </div>
+                  
+                  {user.skills && user.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      {user.skills.slice(0, 3).map((skill: string) => (
+                        <span key={skill} className="px-2 py-0.5 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] rounded-full text-xs">
+                          {skill}
+                        </span>
+                      ))}
+                      {user.skills.length > 3 && (
+                        <span className="px-2 py-0.5 bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 rounded-full text-xs">
+                          +{user.skills.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
-                {user.isActive && (
-                  <span className="flex items-center gap-1 text-xs text-green-600">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    Active
-                  </span>
-                )}
               </div>
-              
-              <div className="flex flex-wrap gap-1 mb-4">
-                {user.skills.map((skill) => (
-                  <span key={skill} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-              
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <span className="flex items-center gap-1">
-                  <Code2 className="w-4 h-4" />
-                  {user.projects} projects
-                </span>
-                <span className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-400" />
-                  {user.stars} stars
-                </span>
-              </div>
-
-              <Link
-                href={`/developer/${user.username}`}
-                className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[#0070f3] hover:text-[#7928ca] transition-colors"
-              >
-                View Profile →
-              </Link>
-            </div>
+            </Link>
           ))}
         </div>
+      )}
 
-        {/* ===== PAGINATION SECTION ===== */}
-        <div className="mt-12 flex flex-col items-center gap-4">
+      {/* Pagination */}
+      {pagination && pagination.pages > 1 && (
+        <div className="flex flex-col items-center gap-4 mt-8">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-500">Data Source: users table</span>
+            <span className="text-xs text-gray-500">Data Source: users table</span>
             <span className="text-xs text-gray-400">|</span>
             <span className="text-xs text-gray-500">GET /api/users/count</span>
           </div>
-          <div className="flex items-center justify-center gap-2">
-            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                className={`h-10 w-10 rounded-lg font-medium transition-colors ${
-                  page === 1
-                    ? 'bg-[#0070f3] text-white'
-                    : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-            <button className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-gray-600 transition-colors hover:bg-gray-50">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+              className="px-4 py-2 rounded border border-stone-200 dark:border-white/10 text-stone-600 dark:text-stone-300 disabled:opacity-50 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2 text-stone-600 dark:text-stone-300">
+              Page {page} of {pagination.pages}
+            </span>
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={page === pagination.pages}
+              className="px-4 py-2 rounded border border-stone-200 dark:border-white/10 text-stone-600 dark:text-stone-300 disabled:opacity-50 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
+            >
               Next
-              <ArrowRight className="h-4 w-4" />
             </button>
           </div>
-          <p className="text-sm text-gray-500">Showing 1-20 of {totalStats.total} community members</p>
         </div>
-      </div>
+      )}
     </div>
-  );
+  )
 }

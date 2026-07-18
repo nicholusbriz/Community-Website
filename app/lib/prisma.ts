@@ -16,12 +16,16 @@ if (!databaseUrl) {
 // ✅ Create pool with optimized settings for serverless
 const pool = new Pool({
   connectionString: databaseUrl,
-  max: process.env.NODE_ENV === 'production' ? 10 : 20, // ✅ Production: smaller pool
+  max: process.env.NODE_ENV === 'production' ? 10 : 20,
   idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
-  // ✅ Add these for better Supabase compatibility
+  // ✅ Increase connection timeout
+  connectionTimeoutMillis: 30_000, // 30 seconds (was 5s)
+  // ✅ Add keepalive to maintain connection
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+  // ✅ SSL settings for Supabase
   ssl: {
-    rejectUnauthorized: false, // ✅ Required for Supabase
+    rejectUnauthorized: false,
   },
 })
 
@@ -37,9 +41,10 @@ export const prisma =
   new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development' 
-      ? ['query', 'error', 'warn'] 
+      ? ['error', 'warn'] 
       : ['error'],
-    // ✅ Optional: Add error handling
+    // ✅ Add connection timeout
+    // Note: These settings may vary based on Prisma version
   })
 
 if (process.env.NODE_ENV !== 'production') {
@@ -51,7 +56,6 @@ export async function disconnectPrisma() {
   await pool.end()
 }
 
-// ✅ Optional: Add health check
 export async function checkDatabaseConnection() {
   try {
     await prisma.$queryRaw`SELECT 1`
@@ -61,7 +65,6 @@ export async function checkDatabaseConnection() {
   }
 }
 
-// ✅ Optional: Add transaction helper
 export async function withTransaction<T>(
   callback: (prisma: PrismaClient) => Promise<T>
 ): Promise<T> {

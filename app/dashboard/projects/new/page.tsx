@@ -1,339 +1,610 @@
 'use client';
 
-import { useState } from 'react';
-import { Upload, X, Plus, Link as LinkIcon, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCreateProject } from '@/app/lib/hooks/useProjects';
+import { useGroups } from '@/app/lib/hooks/useGroups';
+import { useAuth } from '@/app/lib/auth/useAuth';
+import Link from 'next/link';
+import { 
+  ArrowLeft, 
+  Plus, 
+  X, 
+  Loader2,
+  Code,
+  Target,
+  Users,
+  Calendar,
+  FileImage,
+  AlertCircle,
+  CheckCircle,
+  Info
+} from 'lucide-react';
 
 export default function CreateProjectPage() {
   const router = useRouter();
-  const [title, setTitle] = useState('');
-  const [shortDescription, setShortDescription] = useState('');
-  const [fullDescription, setFullDescription] = useState('');
-  const [languages, setLanguages] = useState<string[]>([]);
-  const [newLanguage, setNewLanguage] = useState('');
-  const [lookingForCollaborators, setLookingForCollaborators] = useState(false);
-  const [skillsNeeded, setSkillsNeeded] = useState('');
-  const [liveDemo, setLiveDemo] = useState('');
-  const [github, setGithub] = useState('');
-  const [publishImmediately, setPublishImmediately] = useState(true);
-  const [allowComments, setAllowComments] = useState(true);
+  const { user, isLoading: authLoading, actions } = useAuth();
+  const isAuthenticated = actions.isAuthenticated();
+  const createProject = useCreateProject();
+  const { data: groups, isLoading: groupsLoading } = useGroups();
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    techStack: [] as string[],
+    goals: [] as string[],
+    maxTeamSize: 1, // ✅ Changed from 5 to 1 (default per schema)
+    difficulty: 'INTERMEDIATE' as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED',
+    duration: '',
+    repositoryUrl: '',
+    demoUrl: '',
+    requirements: '',
+    learningOutcomes: [] as string[],
+    groupId: '',
+    // ✅ No projectType or visibility - these are removed from schema
+  });
+  
+  const [newTech, setNewTech] = useState('');
+  const [newGoal, setNewGoal] = useState('');
+  const [newOutcome, setNewOutcome] = useState('');
   const [screenshots, setScreenshots] = useState<string[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [success, setSuccess] = useState('');
 
-  const addLanguage = () => {
-    if (newLanguage && !languages.includes(newLanguage)) {
-      setLanguages([...languages, newLanguage]);
-      setNewLanguage('');
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/join?callbackUrl=/projects/create');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.title || formData.title.length < 3) {
+      newErrors.title = 'Title must be at least 3 characters';
+    }
+    if (formData.title && formData.title.length > 100) {
+      newErrors.title = 'Title must be less than 100 characters';
+    }
+    
+    if (!formData.description || formData.description.length < 10) {
+      newErrors.description = 'Description must be at least 10 characters';
+    }
+    if (formData.description && formData.description.length > 2000) {
+      newErrors.description = 'Description must be less than 2000 characters';
+    }
+    
+    if (formData.techStack.length === 0) {
+      newErrors.techStack = 'Add at least one technology';
+    }
+    
+    if (formData.goals.length === 0) {
+      newErrors.goals = 'Add at least one goal';
+    }
+    
+    if (!formData.groupId) {
+      newErrors.groupId = 'Please select a project category';
+    }
+    
+    // ✅ Updated validation: maxTeamSize must be at least 1
+    if (formData.maxTeamSize < 1 || formData.maxTeamSize > 20) {
+      newErrors.maxTeamSize = 'Team size must be between 1 and 20';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSuccess('');
+    setErrors({});
+    
+    if (!validateForm()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    try {
+      const projectData = {
+        ...formData,
+        screenshots: [], // ✅ Screenshots disabled - always send empty array
+        maxTeamSize: Number(formData.maxTeamSize),
+        // ✅ No projectType or visibility - removed from schema
+      };
+      
+      const result = await createProject.mutateAsync(projectData) as any;
+      setSuccess('Project created successfully! Redirecting...');
+      
+      setTimeout(() => {
+        router.push(`/projects/${result.slug}`);
+      }, 1500);
+      
+    } catch (error: any) {
+      console.error('Failed to create project:', error);
+      setErrors({ submit: error.message || 'Failed to create project. Please try again.' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const removeLanguage = (lang: string) => {
-    setLanguages(languages.filter((l) => l !== lang));
+  const addTech = () => {
+    if (newTech.trim() && !formData.techStack.includes(newTech.trim())) {
+      setFormData({
+        ...formData,
+        techStack: [...formData.techStack, newTech.trim()]
+      });
+      setNewTech('');
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission
-    console.log('Project data:', {
-      title,
-      shortDescription,
-      fullDescription,
-      languages,
-      lookingForCollaborators,
-      skillsNeeded,
-      liveDemo,
-      github,
-      publishImmediately,
-      allowComments,
-      screenshots,
+  const removeTech = (tech: string) => {
+    setFormData({
+      ...formData,
+      techStack: formData.techStack.filter(t => t !== tech)
     });
-    // Redirect to projects page
-    router.push('/dashboard/projects');
   };
 
-  const commonLanguages = ['React', 'TypeScript', 'Next.js', 'Vue', 'Python', 'Node.js', 'Django', 'Go', 'Rust', 'Swift'];
+  const addGoal = () => {
+    if (newGoal.trim()) {
+      setFormData({
+        ...formData,
+        goals: [...formData.goals, newGoal.trim()]
+      });
+      setNewGoal('');
+    }
+  };
+
+  const removeGoal = (goal: string) => {
+    setFormData({
+      ...formData,
+      goals: formData.goals.filter(g => g !== goal)
+    });
+  };
+
+  const addOutcome = () => {
+    if (newOutcome.trim()) {
+      setFormData({
+        ...formData,
+        learningOutcomes: [...formData.learningOutcomes, newOutcome.trim()]
+      });
+      setNewOutcome('');
+    }
+  };
+
+  const removeOutcome = (outcome: string) => {
+    setFormData({
+      ...formData,
+      learningOutcomes: formData.learningOutcomes.filter(o => o !== outcome)
+    });
+  };
+
+  if (authLoading || groupsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#1B2A56]" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Back Button */}
-      <Link
-        href="/dashboard/projects"
-        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Projects
-      </Link>
-
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Create New Project</h1>
-        <p className="text-gray-600 mt-1">Upload and showcase your project to the community</p>
+      <div className="mb-8">
+        <Link 
+          href="/projects" 
+          className="inline-flex items-center gap-2 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white mb-4 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Projects
+        </Link>
+        <h1 className="text-3xl font-bold text-stone-900 dark:text-white">
+          Create New Project
+        </h1>
+        <p className="text-stone-500 dark:text-stone-400 mt-1">
+          Start a new collaborative project and invite developers to join
+        </p>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-6 space-y-8">
-        {/* Project Details */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg text-gray-900">Project Details</h3>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Project Title <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter project title"
-              required
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Short Description <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={shortDescription}
-              onChange={(e) => setShortDescription(e.target.value)}
-              placeholder="Brief description of your project (max 160 characters)"
-              maxLength={160}
-              required
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {shortDescription.length}/160 characters
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Description <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={fullDescription}
-              onChange={(e) => setFullDescription(e.target.value)}
-              placeholder="Detailed description of your project (Markdown supported)"
-              rows={6}
-              required
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors resize-none"
-            />
-          </div>
-        </div>
-
-        {/* Screenshots */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg text-gray-900">Screenshots</h3>
-          
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
-            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-sm text-gray-600 mb-1">Drag & Drop or Click to Upload</p>
-            <p className="text-xs text-gray-500">JPEG, PNG, WebP (Max 5MB each)</p>
-          </div>
-
-          {screenshots.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {screenshots.map((screenshot, index) => (
-                <div key={index} className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                  <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-blue-50 to-purple-50">
-                    📸
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setScreenshots(screenshots.filter((_, i) => i !== index))}
-                    className="absolute top-2 right-2 w-7 h-7 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Success Message */}
+        {success && (
+          <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/20 rounded-lg flex items-start gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+            <div>
+              <p className="text-green-700 dark:text-green-300 font-medium">{success}</p>
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Submit Error */}
+        {errors.submit && (
+          <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/20 rounded-lg flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
+            <p className="text-red-600 dark:text-red-400">{errors.submit}</p>
+          </div>
+        )}
+
+        {/* Basic Information */}
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4">
+            Basic Information
+          </h2>
+          
+          <div className="space-y-4">
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                Project Title *
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className={`w-full px-4 py-2 bg-white dark:bg-[#2d2d2d] border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white ${
+                  errors.title ? 'border-red-500' : 'border-stone-200 dark:border-white/10'
+                }`}
+                placeholder="e.g., AI-Powered Chat Assistant"
+              />
+              {errors.title && (
+                <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+              )}
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                Description *
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={4}
+                className={`w-full px-4 py-2 bg-white dark:bg-[#2d2d2d] border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white ${
+                  errors.description ? 'border-red-500' : 'border-stone-200 dark:border-white/10'
+                }`}
+                placeholder="Describe what this project is about, its purpose, and what you aim to achieve..."
+              />
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Languages */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg text-gray-900">Languages & Technologies</h3>
+        {/* Project Category */}
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4">
+            Project Category
+          </h2>
           
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newLanguage}
-              onChange={(e) => setNewLanguage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addLanguage()}
-              placeholder="Add a language or technology"
-              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
-            />
-            <button
-              type="button"
-              onClick={addLanguage}
-              className="px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+          <div>
+            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+              Select Category *
+            </label>
+            <select
+              value={formData.groupId}
+              onChange={(e) => setFormData({ ...formData, groupId: e.target.value })}
+              className={`w-full px-4 py-2 bg-white dark:bg-[#2d2d2d] border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white ${
+                errors.groupId ? 'border-red-500' : 'border-stone-200 dark:border-white/10'
+              }`}
             >
-              <Plus className="w-5 h-5" />
-            </button>
+              <option value="">Select a category...</option>
+              {groups?.map((group: any) => (
+                <option key={group.id} value={group.id}>
+                  {group.icon || ''} {group.name}
+                </option>
+              ))}
+            </select>
+            {errors.groupId && (
+              <p className="mt-1 text-sm text-red-600">{errors.groupId}</p>
+            )}
           </div>
+        </div>
 
-          <div className="flex flex-wrap gap-2">
-            {commonLanguages.map((lang) => (
+        {/* Tech Stack */}
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
+            <Code className="h-5 w-5" />
+            Tech Stack *
+          </h2>
+          
+          <div>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={newTech}
+                onChange={(e) => setNewTech(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTech())}
+                className="flex-1 px-4 py-2 bg-white dark:bg-[#2d2d2d] border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white"
+                placeholder="e.g., React, Node.js, Python"
+              />
               <button
-                key={lang}
                 type="button"
-                onClick={() => !languages.includes(lang) && setLanguages([...languages, lang])}
-                disabled={languages.includes(lang)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  languages.includes(lang)
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                onClick={addTech}
+                className="px-4 py-2 bg-[#1B2A56] text-white rounded-lg hover:bg-[#16223F] transition-colors"
               >
-                {lang}
+                Add
               </button>
-            ))}
-          </div>
-
-          {languages.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2">
-              {languages.map((lang) => (
+            </div>
+            
+            {errors.techStack && (
+              <p className="mt-1 text-sm text-red-600">{errors.techStack}</p>
+            )}
+            
+            <div className="flex flex-wrap gap-2 mt-2">
+              {formData.techStack.map((tech) => (
                 <span
-                  key={lang}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
+                  key={tech}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] rounded-full text-sm"
                 >
-                  {lang}
+                  {tech}
                   <button
                     type="button"
-                    onClick={() => removeLanguage(lang)}
-                    className="hover:text-blue-900 transition-colors"
+                    onClick={() => removeTech(tech)}
+                    className="hover:text-red-600 transition-colors"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               ))}
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Collaboration */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg text-gray-900">Collaboration</h3>
+        {/* Goals */}
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Project Goals *
+          </h2>
           
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="lookingForCollaborators"
-              checked={lookingForCollaborators}
-              onChange={(e) => setLookingForCollaborators(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="lookingForCollaborators" className="text-sm text-gray-700">
-              Looking for collaborators
-            </label>
+          <div>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={newGoal}
+                onChange={(e) => setNewGoal(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addGoal())}
+                className="flex-1 px-4 py-2 bg-white dark:bg-[#2d2d2d] border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white"
+                placeholder="e.g., Build a real-time dashboard"
+              />
+              <button
+                type="button"
+                onClick={addGoal}
+                className="px-4 py-2 bg-[#1B2A56] text-white rounded-lg hover:bg-[#16223F] transition-colors"
+              >
+                Add
+              </button>
+            </div>
+            
+            {errors.goals && (
+              <p className="mt-1 text-sm text-red-600">{errors.goals}</p>
+            )}
+            
+            <div className="space-y-1 mt-2">
+              {formData.goals.map((goal, index) => (
+                <div key={index} className="flex items-center gap-2 px-3 py-2 bg-stone-50 dark:bg-white/5 rounded-lg">
+                  <span className="text-[#1B2A56] dark:text-[#8CA0DE]">•</span>
+                  <span className="flex-1 text-sm text-stone-700 dark:text-stone-300">{goal}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeGoal(goal)}
+                    className="text-stone-400 hover:text-red-600 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
+        </div>
 
-          {lookingForCollaborators && (
+        {/* Team Settings */}
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Team Settings
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Skills needed
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                Team Size *
+              </label>
+              <input
+                type="number"
+                value={formData.maxTeamSize}
+                onChange={(e) => setFormData({ ...formData, maxTeamSize: parseInt(e.target.value) || 1 })}
+                min={1}
+                max={20}
+                className={`w-full px-4 py-2 bg-white dark:bg-[#2d2d2d] border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white ${
+                  errors.maxTeamSize ? 'border-red-500' : 'border-stone-200 dark:border-white/10'
+                }`}
+              />
+              {errors.maxTeamSize && (
+                <p className="mt-1 text-sm text-red-600">{errors.maxTeamSize}</p>
+              )}
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                Difficulty Level
+              </label>
+              <select
+                value={formData.difficulty}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  difficulty: e.target.value as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' 
+                })}
+                className="w-full px-4 py-2 bg-white dark:bg-[#2d2d2d] border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white"
+              >
+                <option value="BEGINNER">🟢 Beginner</option>
+                <option value="INTERMEDIATE">🟡 Intermediate</option>
+                <option value="ADVANCED">🔴 Advanced</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Duration & Links */}
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Duration & Links
+          </h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                Estimated Duration
               </label>
               <input
                 type="text"
-                value={skillsNeeded}
-                onChange={(e) => setSkillsNeeded(e.target.value)}
-                placeholder="e.g., React, Node.js, MongoDB"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                value={formData.duration}
+                onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                className="w-full px-4 py-2 bg-white dark:bg-[#2d2d2d] border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white"
+                placeholder="e.g., 3 months, 6 weeks"
               />
             </div>
-          )}
-        </div>
-
-        {/* Project Links */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg text-gray-900">Project Links</h3>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Live Demo
-            </label>
-            <div className="relative">
-              <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            
+            <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                Repository URL
+              </label>
               <input
                 type="url"
-                value={liveDemo}
-                onChange={(e) => setLiveDemo(e.target.value)}
-                placeholder="https://your-project.com"
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              GitHub Repository
-            </label>
-            <div className="relative">
-              <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="url"
-                value={github}
-                onChange={(e) => setGithub(e.target.value)}
+                value={formData.repositoryUrl}
+                onChange={(e) => setFormData({ ...formData, repositoryUrl: e.target.value })}
+                className="w-full px-4 py-2 bg-white dark:bg-[#2d2d2d] border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white"
                 placeholder="https://github.com/username/project"
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                Demo URL
+              </label>
+              <input
+                type="url"
+                value={formData.demoUrl}
+                onChange={(e) => setFormData({ ...formData, demoUrl: e.target.value })}
+                className="w-full px-4 py-2 bg-white dark:bg-[#2d2d2d] border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white"
+                placeholder="https://demo.example.com"
               />
             </div>
           </div>
         </div>
 
-        {/* Publishing Options */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg text-gray-900">Publishing Options</h3>
+        {/* Requirements */}
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4">
+            Requirements
+          </h2>
           
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="publishImmediately"
-              checked={publishImmediately}
-              onChange={(e) => setPublishImmediately(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="publishImmediately" className="text-sm text-gray-700">
-              Publish immediately
+          <div>
+            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+              Skills & Requirements
             </label>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="allowComments"
-              checked={allowComments}
-              onChange={(e) => setAllowComments(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            <textarea
+              value={formData.requirements}
+              onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-2 bg-white dark:bg-[#2d2d2d] border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white"
+              placeholder="Describe the skills, experience, or requirements for team members..."
             />
-            <label htmlFor="allowComments" className="text-sm text-gray-700">
-              Allow comments
-            </label>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
+        {/* Learning Outcomes */}
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
+            <Info className="h-5 w-5" />
+            Learning Outcomes
+          </h2>
+          
+          <div>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={newOutcome}
+                onChange={(e) => setNewOutcome(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addOutcome())}
+                className="flex-1 px-4 py-2 bg-white dark:bg-[#2d2d2d] border border-stone-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A56]/30 text-stone-900 dark:text-white"
+                placeholder="e.g., Learn full-stack development"
+              />
+              <button
+                type="button"
+                onClick={addOutcome}
+                className="px-4 py-2 bg-[#1B2A56] text-white rounded-lg hover:bg-[#16223F] transition-colors"
+              >
+                Add
+              </button>
+            </div>
+            
+            <div className="space-y-1 mt-2">
+              {formData.learningOutcomes.map((outcome, index) => (
+                <div key={index} className="flex items-center gap-2 px-3 py-2 bg-stone-50 dark:bg-white/5 rounded-lg">
+                  <span className="text-[#1B2A56] dark:text-[#8CA0DE]">•</span>
+                  <span className="flex-1 text-sm text-stone-700 dark:text-stone-300">{outcome}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeOutcome(outcome)}
+                    className="text-stone-400 hover:text-red-600 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ⚠️ Screenshots - DISABLED */}
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6 opacity-50 pointer-events-none">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
+            <FileImage className="h-5 w-5" />
+            Screenshots <span className="text-sm font-normal text-stone-400 dark:text-stone-500">(Coming soon)</span>
+          </h2>
+          
+          <div className="flex items-center justify-center w-full">
+            <div className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-stone-300 dark:border-stone-700 rounded-lg bg-stone-50 dark:bg-stone-800/30">
+              <FileImage className="h-8 w-8 text-stone-400 dark:text-stone-500 mb-2" />
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                Screenshot upload is currently disabled
+              </p>
+              <p className="text-xs text-stone-400 dark:text-stone-500">
+                This feature will be available soon
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="flex items-center justify-end gap-4 pt-4 border-t border-stone-200 dark:border-white/10">
           <Link
-            href="/dashboard/projects"
-            className="px-6 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors text-center"
+            href="/projects"
+            className="px-6 py-2.5 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5 rounded-lg transition-colors"
           >
             Cancel
           </Link>
           <button
-            type="button"
-            className="px-6 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Save as Draft
-          </button>
-          <button
             type="submit"
-            className="flex-1 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-blue-600/25 transition-all"
+            disabled={createProject.isPending}
+            className="px-6 py-2.5 bg-[#1B2A56] text-white rounded-lg hover:bg-[#16223F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Publish Project
+            {createProject.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                Create Project
+              </>
+            )}
           </button>
         </div>
       </form>

@@ -1,8 +1,8 @@
+// app/projects/page.tsx
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { Filter, Heart, MessageCircle, ArrowRight, Star } from 'lucide-react';
-// ❌ REMOVE: import PublicLayout from '../public-layout';
 import Link from 'next/link';
 
 function PageShell({ children }: { children: ReactNode }) {
@@ -36,18 +36,31 @@ function FilterBar({ searchValue, onSearchChange, searchPlaceholder, filters }: 
   );
 }
 
-function ProjectCard({ title, tech, owner, likes, href }: { title: string; tech: string; owner: string; likes: number; href: string }) {
+function ProjectCard({ title, tech, owner, likes, href, isLoading }: { title?: string; tech?: string; owner?: string; likes?: number; href?: string; isLoading?: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm animate-pulse">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
+          <div className="h-4 w-12 bg-gray-200 rounded"></div>
+        </div>
+        <div className="h-6 w-3/4 bg-gray-200 rounded mb-2"></div>
+        <div className="h-4 w-1/2 bg-gray-200 rounded"></div>
+      </div>
+    );
+  }
+
   return (
-    <Link href={href} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl block">
+    <Link href={href || '#'} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl block">
       <div className="mb-4 flex items-center justify-between">
-        <span className="rounded-full bg-[#0070f3]/10 px-3 py-1 text-sm font-medium text-[#0070f3]">{tech}</span>
+        <span className="rounded-full bg-[#0070f3]/10 px-3 py-1 text-sm font-medium text-[#0070f3]">{tech || 'Unknown'}</span>
         <span className="flex items-center gap-1 text-sm text-gray-500">
           <Star className="h-4 w-4 text-yellow-400" />
-          {likes}
+          {likes || 0}
         </span>
       </div>
-      <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
-      <p className="text-sm text-gray-600">By {owner}</p>
+      <h3 className="mb-2 text-lg font-semibold text-gray-900">{title || 'Untitled'}</h3>
+      <p className="text-sm text-gray-600">By {owner || 'Unknown'}</p>
     </Link>
   );
 }
@@ -57,22 +70,65 @@ export default function ProjectsPage() {
   const [selectedLanguage, setSelectedLanguage] = useState('All Languages');
   const [selectedTag, setSelectedTag] = useState('All Tags');
   const [sortBy, setSortBy] = useState('Newest');
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const projects = [
-    { id: 1, title: 'AI Chat App', languages: ['React', 'TypeScript'], tags: ['AI', 'Chat'], owner: 'Sarah', likes: 45, comments: 12, href: '/project/1' },
-    { id: 2, title: 'DevPortfolio', languages: ['Next.js', 'TypeScript'], tags: ['Portfolio', 'Web'], owner: 'Mike', likes: 32, comments: 8, href: '/project/2' },
-    { id: 3, title: 'React Dashboard', languages: ['React', 'Tailwind'], tags: ['Dashboard', 'UI'], owner: 'Emily', likes: 28, comments: 15, href: '/project/3' },
-    { id: 4, title: 'EcoTracker', languages: ['Python', 'Django'], tags: ['Environment', 'Data'], owner: 'James', likes: 21, comments: 6, href: '/project/4' },
-    { id: 5, title: 'Task Manager', languages: ['Vue', 'TypeScript'], tags: ['Productivity', 'SaaS'], owner: 'Lisa', likes: 18, comments: 9, href: '/project/5' },
-    { id: 6, title: 'Social Media App', languages: ['React Native', 'Firebase'], tags: ['Mobile', 'Social'], owner: 'David', likes: 15, comments: 11, href: '/project/6' },
-  ];
+  // ✅ Fetch projects from API
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Build query params
+        const params = new URLSearchParams();
+        if (searchQuery) params.append('search', searchQuery);
+        if (selectedLanguage !== 'All Languages') params.append('language', selectedLanguage);
+        if (selectedTag !== 'All Tags') params.append('tag', selectedTag);
+        
+        const response = await fetch(`/api/projects?${params.toString()}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+        
+        const data = await response.json();
+        
+        // Transform API data to match your project card format
+        const formattedProjects = data.projects.map((project: any) => ({
+          id: project.id,
+          title: project.title,
+          tech: project.techStack && project.techStack.length > 0 ? project.techStack[0] : 'Unknown',
+          owner: project.owner?.name || 'Unknown',
+          likes: project._count?.members || 0,
+          href: `/projects/${project.slug}`,
+          // Keep original data for filtering
+          languages: project.techStack || [],
+          tags: project.tags || [],
+          comments: project._count?.tasks || 0,
+        }));
+        
+        setProjects(formattedProjects);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setError('Failed to load projects. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchProjects();
+  }, [searchQuery, selectedLanguage, selectedTag]); // Re-fetch when filters change
 
-  const languages = ['All Languages', 'React', 'Next.js', 'Vue', 'Python', 'TypeScript', 'JavaScript'];
-  const tags = ['All Tags', 'AI', 'Web', 'Mobile', 'Dashboard', 'SaaS', 'Data'];
+  // Filter projects (already filtered by API, but we can do additional client-side filtering if needed)
+  const filteredProjects = projects;
+
+  const languages = ['All Languages', 'React', 'Next.js', 'Vue', 'Python', 'TypeScript', 'JavaScript', 'Django', 'Node.js'];
+  const tags = ['All Tags', 'AI', 'Web', 'Mobile', 'Dashboard', 'SaaS', 'Data', 'Chat', 'Portfolio'];
   const sortOptions = ['Newest', 'Most Liked', 'Most Comments', 'Oldest'];
 
   return (
-    // ❌ REMOVE: <PublicLayout>
     <PageShell>
       <PageHeader title="All Projects" description="Browse and discover amazing projects from our community" />
 
@@ -125,33 +181,74 @@ export default function ProjectsPage() {
       />
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} title={project.title} tech={project.languages[0]} owner={project.owner} likes={project.likes} href={project.href} />
-          ))}
-        </div>
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-8">
+            <p className="text-red-500">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <ProjectCard key={i} isLoading={true} />
+            ))}
+          </div>
+        )}
+
+        {/* Projects Grid */}
+        {!loading && !error && (
+          <>
+            {filteredProjects.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No projects found</p>
+                <p className="text-gray-400 mt-2">Try adjusting your filters or create a new project</p>
+                <Link 
+                  href="/dashboard/projects/new" 
+                  className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Create Project
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredProjects.map((project) => (
+                  <ProjectCard key={project.id} {...project} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
         {/* Pagination */}
-        <div className="mt-12 flex items-center justify-center gap-2">
-          {[1, 2, 3, 4, 5].map((page) => (
-            <button
-              key={page}
-              className={`h-10 w-10 rounded-lg font-medium transition-colors ${
-                page === 1
-                  ? 'bg-[#0070f3] text-white'
-                  : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {page}
+        {!loading && !error && filteredProjects.length > 0 && (
+          <div className="mt-12 flex items-center justify-center gap-2">
+            {[1, 2, 3, 4, 5].map((page) => (
+              <button
+                key={page}
+                className={`h-10 w-10 rounded-lg font-medium transition-colors ${
+                  page === 1
+                    ? 'bg-[#0070f3] text-white'
+                    : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-gray-600 transition-colors hover:bg-gray-50">
+              Next
+              <ArrowRight className="h-4 w-4" />
             </button>
-          ))}
-          <button className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-gray-600 transition-colors hover:bg-gray-50">
-            Next
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </PageShell>
-    // ❌ REMOVE: </PublicLayout>
   );
 }
