@@ -89,9 +89,10 @@ export async function GET(
 }
 
 // PUT /api/projects/[id]/requests/[requestId] - Update a join request (approve/reject)
+// Consolidated endpoint - replaces separate approve and reject endpoints
 export async function PUT(
-  request: NextRequest, 
-  { params }: { params: Promise<{ id: string; requestId: string }> }  // ✅ Fixed: id and requestId
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string; requestId: string }> }
 ) {
   try {
     const auth = await getAuthUser(request);

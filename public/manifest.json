@@ -1,6 +1,6 @@
 {
-  "name": "Community Ecosystem",
-  "short_name": "Community",
+  "name": "Developers Ecosystem",
+  "short_name": "Dev Ecosystem",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A0A0F",
@@ -32,5 +32,5 @@
     }
   ],
   "scope": "/",
-  "description": "Community Ecosystem Website - collaborate, learn, and share."
+  "description": "Developers Ecosystem - A community website ecosystem for developers to collaborate, learn, and share."
 }

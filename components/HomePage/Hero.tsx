@@ -49,7 +49,7 @@ export default function Hero() {
             className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-6 sm:mb-8 shadow-lg shadow-black/20"
           >
             <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#8CA0DE]" />
-            <span className="text-xs sm:text-sm text-white/80 font-medium tracking-wide">Africa's Largest Technology Community</span>
+            <span className="text-xs sm:text-sm text-white/80 font-medium tracking-wide">Global Developer Community Ecosystem</span>
           </motion.div>
 
           {/* Main Title */}
@@ -60,8 +60,8 @@ export default function Hero() {
             className="space-y-3 sm:space-y-4 mb-6 sm:mb-8"
           >
             <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight leading-tight">
-              <span className="text-white">Tech Rise</span>
-              <span className="text-[#8CA0DE]"> Africa</span>
+              <span className="text-white">Developers</span>
+              <span className="text-[#8CA0DE]"> Ecosystem</span>
             </h1>
             <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold text-white/90 leading-relaxed">
               Learn. Build. Connect. Launch.
@@ -75,8 +75,8 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-sm sm:text-base md:text-lg lg:text-xl text-white/60 max-w-2xl mx-auto mb-8 sm:mb-10 px-4 leading-relaxed"
           >
-            Join the largest community of developers, innovators, and entrepreneurs
-            building the future of technology in Africa.
+            Join the largest developer community ecosystem connecting developers globally
+            with free internships, mentorship, and collaborative projects.
           </motion.p>
 
           {/* CTA Buttons */}

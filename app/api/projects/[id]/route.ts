@@ -125,7 +125,6 @@ export async function PUT(
       duration,
       repositoryUrl,
       demoUrl,
-      screenshots,
       requirements,
       learningOutcomes,
       groupId,
@@ -170,7 +169,7 @@ export async function PUT(
       );
     }
 
-    // ✅ Build update data (removed projectType and visibility)
+    // ✅ Build update data (removed projectType, visibility, and screenshots)
     const updateData: any = {
       title,
       description,
@@ -181,7 +180,6 @@ export async function PUT(
       duration,
       repositoryUrl,
       demoUrl,
-      screenshots,
       requirements,
       learningOutcomes,
       groupId,

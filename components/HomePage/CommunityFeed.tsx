@@ -39,7 +39,7 @@ const feedItems = [
     avatar: 'GM',
     role: 'Founder of KasiPay',
     time: '4 hours ago',
-    content: 'Our startup just raised $500K pre-seed! 🎉 Building the future of logistics in East Africa. Huge thanks to the Tech Rise community for the support!',
+    content: 'Our startup just raised $500K pre-seed! 🎉 Building the future of logistics globally. Huge thanks to the Developers Ecosystem community for the support!',
     likes: 89,
     comments: 23,
     shares: 34,
@@ -78,9 +78,9 @@ const feedItems = [
 ];
 
 const trendingTopics = [
-  '#TechRiseAfrica',
+  '#DevelopersEcosystem',
   '#OpenSource',
-  '#AIinAfrica',
+  '#GlobalTech',
   '#StartupFunding',
   '#DevCommunity',
 ];

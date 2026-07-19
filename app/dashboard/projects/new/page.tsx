@@ -6,16 +6,15 @@ import { useCreateProject } from '@/app/lib/hooks/useProjects';
 import { useGroups } from '@/app/lib/hooks/useGroups';
 import { useAuth } from '@/app/lib/auth/useAuth';
 import Link from 'next/link';
-import { 
-  ArrowLeft, 
-  Plus, 
-  X, 
+import {
+  ArrowLeft,
+  Plus,
+  X,
   Loader2,
   Code,
   Target,
   Users,
   Calendar,
-  FileImage,
   AlertCircle,
   CheckCircle,
   Info
@@ -47,7 +46,6 @@ export default function CreateProjectPage() {
   const [newTech, setNewTech] = useState('');
   const [newGoal, setNewGoal] = useState('');
   const [newOutcome, setNewOutcome] = useState('');
-  const [screenshots, setScreenshots] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState('');
 
@@ -109,9 +107,8 @@ export default function CreateProjectPage() {
     try {
       const projectData = {
         ...formData,
-        screenshots: [], // ✅ Screenshots disabled - always send empty array
         maxTeamSize: Number(formData.maxTeamSize),
-        // ✅ No projectType or visibility - removed from schema
+        // ✅ No projectType, visibility, or screenshots - removed from schema
       };
       
       const result = await createProject.mutateAsync(projectData) as any;
@@ -557,26 +554,6 @@ export default function CreateProjectPage() {
                   </button>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ⚠️ Screenshots - DISABLED */}
-        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6 opacity-50 pointer-events-none">
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
-            <FileImage className="h-5 w-5" />
-            Screenshots <span className="text-sm font-normal text-stone-400 dark:text-stone-500">(Coming soon)</span>
-          </h2>
-          
-          <div className="flex items-center justify-center w-full">
-            <div className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-stone-300 dark:border-stone-700 rounded-lg bg-stone-50 dark:bg-stone-800/30">
-              <FileImage className="h-8 w-8 text-stone-400 dark:text-stone-500 mb-2" />
-              <p className="text-sm text-stone-500 dark:text-stone-400">
-                Screenshot upload is currently disabled
-              </p>
-              <p className="text-xs text-stone-400 dark:text-stone-500">
-                This feature will be available soon
-              </p>
             </div>
           </div>
         </div>

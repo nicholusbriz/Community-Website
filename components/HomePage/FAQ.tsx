@@ -7,20 +7,20 @@ import { ChevronDown, Search } from 'lucide-react';
 
 const faqs = [
   {
-    question: 'What is Tech Rise Africa?',
-    answer: 'Tech Rise Africa is the largest technology community in Africa, connecting developers, innovators, entrepreneurs, and leaders across the continent. We provide mentorship, resources, networking opportunities, and a platform for collaboration and growth.',
+    question: 'What is Developers Ecosystem?',
+    answer: 'Developers Ecosystem is a global developer community ecosystem connecting developers, innovators, entrepreneurs, and leaders worldwide. We provide mentorship, resources, networking opportunities, and a platform for collaboration and growth.',
   },
   {
     question: 'How do I join the community?',
     answer: 'You can join by clicking the "Join Community" button on our homepage. The process is simple: create an account, fill in your profile, and you\'ll gain access to all our resources, events, and networking opportunities.',
   },
   {
-    question: 'Is Tech Rise Africa free to join?',
-    answer: 'Yes! Tech Rise Africa is completely free to join. We believe in democratizing access to technology education and opportunities across Africa. Some premium programs and events may have fees, but the core community is free.',
+    question: 'Is Developers Ecosystem free to join?',
+    answer: 'Yes! Developers Ecosystem is completely free to join. We believe in democratizing access to technology education and opportunities globally. Some premium programs and events may have fees, but the core community is free.',
   },
   {
     question: 'What kind of events do you organize?',
-    answer: 'We organize a wide range of events including hackathons, workshops, meetups, conferences, and networking sessions. Events are held both virtually and in-person across major African cities.',
+    answer: 'We organize a wide range of events including hackathons, workshops, meetups, conferences, and networking sessions. Events are held both virtually and in-person across major cities worldwide.',
   },
   {
     question: 'How can I become a mentor?',

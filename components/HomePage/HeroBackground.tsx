@@ -161,7 +161,7 @@ export default function HeroBackground() {
           ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
           ctx.font = 'bold 14px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText('Tech Rise Africa', node.x, node.y - node.radius - 12);
+          ctx.fillText('Developers Ecosystem', node.x, node.y - node.radius - 12);
         }
       });
 

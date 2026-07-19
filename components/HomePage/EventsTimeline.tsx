@@ -15,7 +15,7 @@ import {
 const events = [
   {
     id: 1,
-    title: 'Tech Rise Africa Annual Summit 2026',
+    title: 'Developers Ecosystem Annual Summit 2026',
     date: 'December 15-17, 2026',
     time: '9:00 AM - 6:00 PM',
     location: 'Nairobi, Kenya',

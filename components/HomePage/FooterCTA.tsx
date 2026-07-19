@@ -59,12 +59,12 @@ export default function FooterCTA() {
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
             Ready to be part of <br />
-            <span className="text-[#8CA0DE]">Africa's tech revolution?</span>
+            <span className="text-[#8CA0DE]">the global tech revolution?</span>
           </h2>
 
           <p className="text-white/60 text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-6 sm:mb-8 md:mb-10 leading-relaxed">
             Join thousands of developers, innovators, and leaders building the future
-            of technology in Africa. Your journey starts here.
+            of technology globally. Your journey starts here.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 px-4">
