@@ -24,10 +24,10 @@ interface ProjectWithRelations {
   difficulty: string;
   // ✅ REMOVED: projectType
   // ✅ REMOVED: visibility
+  // ✅ REMOVED: screenshots
   duration: string | null;
   repositoryUrl: string | null;
   demoUrl: string | null;
-  screenshots: string[];
   requirements: string | null;
   learningOutcomes: string[];
   groupId: string | null;
@@ -254,9 +254,10 @@ export function useDashboardData(projectId: string) {
 
   // Mutations for join requests - ✅ Updated endpoints
   const approveRequest = useCallback(async (requestId: string) => {
-    const response = await fetch(`/api/projects/${projectId}/join-requests/${requestId}/approve`, {
-      method: 'PATCH',
+    const response = await fetch(`/api/projects/${projectId}/requests/${requestId}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'APPROVED' }),
     });
 
     if (!response.ok) {
@@ -271,10 +272,10 @@ export function useDashboardData(projectId: string) {
   }, [projectId, joinRequests, members, analytics]);
 
   const rejectRequest = useCallback(async (requestId: string, reason?: string) => {
-    const response = await fetch(`/api/projects/${projectId}/join-requests/${requestId}/reject`, {
-      method: 'POST',
+    const response = await fetch(`/api/projects/${projectId}/requests/${requestId}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ status: 'REJECTED', rejectionReason: reason }),
     });
 
     if (!response.ok) {

@@ -8,36 +8,36 @@ import PWAInstallPrompt from "@/components/PWAInstallPrompt"
 
 export const metadata: Metadata = {
   title: {
-    default: "Tech Rise Africa",
-    template: "%s | Tech Rise Africa"
+    default: "Developers Ecosystem",
+    template: "%s | Developers Ecosystem"
   },
-  description: "Tech Rise Africa is a community ecosystem connecting developers across Africa with free internships, mentorship, and collaborative projects. Join the fastest growing tech community in Africa.",
+  description: "Developers Ecosystem is a community website ecosystem connecting developers globally with free internships, mentorship, and collaborative projects. Join the fastest growing developer community ecosystem.",
   keywords: [
-    "Tech Rise Africa",
-    "tech community Africa",
+    "Developers Ecosystem",
+    "developer community",
+    "tech community",
     "developer internships",
     "free internships",
-    "African developers",
+    "software developers",
     "tech ecosystem",
     "mentorship program",
     "coding community",
     "open source projects",
     "developer collaboration",
-    "tech rise",
-    "Africa tech hub",
+    "developer hub",
     "software development",
     "free coding internships",
     "tech mentorship",
-    "developer community Africa",
+    "developer community ecosystem",
     "Briz",
     "Briz developer",
   ],
   authors: [
     { name: "Atriz" },
-    { name: "Tech Rise Africa Team" }
+    { name: "Developers Ecosystem Team" }
   ],
   creator: "Atriz",
-  publisher: "Tech Rise Africa",
+  publisher: "Developers Ecosystem",
   robots: {
     index: true,
     follow: true,
@@ -53,16 +53,16 @@ export const metadata: Metadata = {
     canonical: "https://community-website-sigma.vercel.app/",
   },
   openGraph: {
-    title: "Tech Rise Africa - Build, Learn & Grow",
-    description: "Join the largest tech ecosystem in Africa. Get free internships, mentorship, and collaborate on projects with developers across the continent.",
+    title: "Developers Ecosystem - Build, Learn & Grow",
+    description: "Join the largest developer community ecosystem. Get free internships, mentorship, and collaborate on projects with developers globally.",
     url: "https://community-website-sigma.vercel.app/",
-    siteName: "Tech Rise Africa",
+    siteName: "Developers Ecosystem",
     images: [
       {
         url: "https://community-website-sigma.vercel.app//og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Tech Rise Africa - Community Ecosystem",
+        alt: "Developers Ecosystem - Community Website Ecosystem",
       },
     ],
     locale: "en_US",
@@ -70,11 +70,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tech Rise Africa - Free Internships & Developer Community",
-    description: "Connect with developers across Africa, access free internships, mentorship, and build amazing projects together.",
+    title: "Developers Ecosystem - Free Internships & Developer Community",
+    description: "Connect with developers globally, access free internships, mentorship, and build amazing projects together.",
     images: ["https://community-website-sigma.vercel.app//twitter-image.jpg"],
-    creator: "@techriseafrica",
-    site: "@techriseafrica",
+    creator: "@developersecosystem",
+    site: "@developersecosystem",
   },
   verification: {
     google: "CWp1CoMCJwY7mM1h2Ds4IjRT6rRLqmNL3hy8-mU_MLQ", // ✅ Your Google Search Console verification code
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Tech Rise Africa",
+    title: "Developers Ecosystem",
   },
   icons: {
     icon: "/community-website-logo.png",
@@ -116,7 +116,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#8B5CF6" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Tech Rise Africa" />
+        <meta name="apple-mobile-web-app-title" content="Developers Ecosystem" />
         <link rel="apple-touch-icon" href="/community-website-logo.png" />
         {/* ✅ Google Search Console verification meta tag */}
         <meta 

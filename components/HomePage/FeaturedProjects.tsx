@@ -108,7 +108,7 @@ export default function FeaturedProjects() {
             Featured <span className="text-[#8CA0DE]">Projects</span>
           </h2>
           <p className="text-white/60 max-w-2xl mx-auto mt-2 text-xs sm:text-sm leading-relaxed">
-            Discover projects built by the Tech Rise Africa community
+            Discover projects built by the Developers Ecosystem community
           </p>
         </div>
 

@@ -1,10 +1,11 @@
-// app/api/projects/[id]/members/[userId]/make-lead/route.ts
+// app/api/projects/[id]/members/[userId]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser, handleAuthError } from '@/app/lib/auth/api-utils';
 import { prisma } from '@/app/lib/prisma';
 import { createNotification } from '@/app/lib/notifications/helpers';
 
-// PATCH /api/projects/[id]/members/[userId]/make-lead - Make a member a project lead
+// PATCH /api/projects/[id]/members/[userId] - Make a member a project lead
+// Consolidated endpoint - replaces separate make-lead endpoint
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; userId: string }> }
@@ -15,7 +16,7 @@ export async function PATCH(
 
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      select: { 
+      select: {
         ownerId: true,
         title: true,
       },
@@ -122,7 +123,7 @@ export async function PATCH(
       },
     });
 
-    // ✅ Create notification for the user being promoted to lead
+    // Create notification for the user being promoted to lead
     await createNotification({
       userId: userId,
       title: 'Promoted to Project Lead',
@@ -138,8 +139,8 @@ export async function PATCH(
         projectId: projectId,
         userId: auth.userId,
         action: 'LEAD_ASSIGNED',
-        details: { 
-          userId: userId, 
+        details: {
+          userId: userId,
           userName: user.name,
           assignedBy: auth.userId,
           assignedByName: auth.user.name,
@@ -147,10 +148,10 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: 'User assigned as project lead',
-      lead 
+      lead
     }, { status: 200 });
   } catch (error) {
     console.error('Error making user a project lead:', error);
@@ -158,7 +159,8 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/projects/[id]/members/[userId]/make-lead - Remove a project lead
+// DELETE /api/projects/[id]/members/[userId] - Remove a project lead
+// Consolidated endpoint - replaces separate make-lead DELETE
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; userId: string }> }
@@ -169,7 +171,7 @@ export async function DELETE(
 
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      select: { 
+      select: {
         ownerId: true,
         title: true,
       },
@@ -225,7 +227,7 @@ export async function DELETE(
       },
     });
 
-    // ✅ Create notification for the user being demoted from lead
+    // Create notification for the user being demoted from lead
     await createNotification({
       userId: userId,
       title: 'Removed as Project Lead',
@@ -241,8 +243,8 @@ export async function DELETE(
         projectId: projectId,
         userId: auth.userId,
         action: 'LEAD_REMOVED',
-        details: { 
-          userId: userId, 
+        details: {
+          userId: userId,
           userName: lead.user?.name || 'Unknown user',
           removedBy: auth.userId,
           removedByName: auth.user.name,
@@ -250,7 +252,7 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: 'Lead removed successfully',
       userId: userId,

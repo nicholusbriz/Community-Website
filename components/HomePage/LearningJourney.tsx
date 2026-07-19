@@ -109,7 +109,7 @@ export default function LearningJourney() {
             Your Journey
           </span>
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mt-2 leading-tight">
-            Become an African <span className="text-[#8CA0DE]">Tech Leader</span>
+            Become a <span className="text-[#8CA0DE]">Tech Leader</span>
           </h2>
           <p className="text-white/60 max-w-2xl mx-auto mt-2 text-xs sm:text-sm leading-relaxed">
             Follow our structured path from beginner to industry leader.

@@ -26,12 +26,12 @@ interface EcosystemNode {
 }
 
 const ecosystemNodes: EcosystemNode[] = [
-  { 
-    id: 'center', 
-    label: 'Tech Rise Africa', 
-    icon: Sparkles, 
+  {
+    id: 'center',
+    label: 'Developers Ecosystem',
+    icon: Sparkles,
     color: '#8CA0DE',
-    description: 'The heart of Africa\'s tech ecosystem',
+    description: 'The heart of the global developer ecosystem',
     stats: '26,000+ Members'
   },
   { 
@@ -182,7 +182,7 @@ export default function EcosystemSection() {
           </h2>
           <p className="text-white/60 max-w-2xl mx-auto mt-2 text-xs sm:text-sm leading-relaxed">
             An interconnected network of developers, innovators, and leaders driving
-            Africa's technology revolution forward.
+            the global technology revolution forward.
           </p>
         </motion.div>
 

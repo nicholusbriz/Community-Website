@@ -141,7 +141,7 @@ export default function DesktopSidebar({
 
   // ✅ 5️⃣ PROJECT ACTIONS (Authenticated users) - FIXED: Changed from projectActionLinks to projectActions
   const projectActions = [
-    { href: '/dashboard/projects/create', label: 'Create Project', icon: Plus, description: 'Start a new project' },
+    { href: '/dashboard/projects/new', label: 'Create Project', icon: Plus, description: 'Start a new project' },
     { href: '/dashboard/projects', label: 'Manage Projects', icon: FolderOpen, description: 'Manage your projects' },
   ];
 

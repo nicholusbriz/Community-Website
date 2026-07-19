@@ -24,8 +24,8 @@ export function useApproveJoinRequest(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (requestId: string) => 
-      api.patch(`/api/projects/${projectId}/join-requests/${requestId}/approve`),
+    mutationFn: (requestId: string) =>
+      api.put(`/api/projects/${projectId}/requests/${requestId}`, { status: 'APPROVED' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['join-requests', projectId] });
       queryClient.invalidateQueries({ queryKey: ['members', projectId] });
@@ -42,8 +42,8 @@ export function useRejectJoinRequest(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ requestId, reason }: { requestId: string; reason?: string }) => 
-      api.post(`/api/projects/${projectId}/join-requests/${requestId}/reject`, { reason }),
+    mutationFn: ({ requestId, reason }: { requestId: string; reason?: string }) =>
+      api.put(`/api/projects/${projectId}/requests/${requestId}`, { status: 'REJECTED', rejectionReason: reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['join-requests', projectId] });
     },

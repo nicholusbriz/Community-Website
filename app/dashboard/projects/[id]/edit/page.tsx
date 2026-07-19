@@ -8,16 +8,15 @@ import { useAuth } from '@/app/lib/auth/useAuth';
 import { useProject, useUpdateProject } from '@/app/lib/hooks/useProjects';
 import { useGroups } from '@/app/lib/hooks/useGroups';
 import Link from 'next/link';
-import { 
-  ArrowLeft, 
-  Plus, 
-  X, 
+import {
+  ArrowLeft,
+  Plus,
+  X,
   Loader2,
   Code,
   Target,
   Users,
   Calendar,
-  FileImage,
   AlertCircle,
   CheckCircle,
   Info,
@@ -71,7 +70,6 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
   const [newTech, setNewTech] = useState('');
   const [newGoal, setNewGoal] = useState('');
   const [newOutcome, setNewOutcome] = useState('');
-  const [screenshots, setScreenshots] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -96,7 +94,6 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
         groupId: project.groupId || '',
         status: (project.status as ProjectStatus) || 'OPEN',
       });
-      setScreenshots(project.screenshots || []);
       setProjectSlug(project.slug || id);
       setIsLoading(false);
     }
@@ -156,9 +153,8 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
     try {
       const updateData = {
         ...formData,
-        screenshots,
         maxTeamSize: Number(formData.maxTeamSize),
-        // ✅ projectType and visibility are removed - don't send them
+        // ✅ projectType, visibility, and screenshots are removed - don't send them
       };
       
       await updateProject.mutateAsync({ id, data: updateData });
@@ -244,12 +240,7 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
         continue;
       }
       const url = URL.createObjectURL(file);
-      setScreenshots(prev => [...prev, url]);
     }
-  };
-
-  const removeScreenshot = (index: number) => {
-    setScreenshots(prev => prev.filter((_, i) => i !== index));
   };
 
   // ✅ Updated status options - only OPEN, IN_PROGRESS, COMPLETED
@@ -668,58 +659,6 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* Screenshots */}
-        <div className="bg-white dark:bg-[#1e1e1e] rounded-lg border border-stone-200 dark:border-white/10 p-6">
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
-            <FileImage className="h-5 w-5" />
-            Screenshots
-          </h2>
-          
-          <div>
-            <div className="flex items-center justify-center w-full">
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-stone-300 dark:border-stone-700 rounded-lg cursor-pointer hover:bg-stone-50 dark:hover:bg-white/5 transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <FileImage className="h-8 w-8 text-stone-400 dark:text-stone-500 mb-2" />
-                  <p className="text-sm text-stone-500 dark:text-stone-400">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-stone-400 dark:text-stone-500">
-                    PNG, JPG, GIF, WEBP (Max 5MB)
-                  </p>
-                </div>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleScreenshotUpload}
-                />
-              </label>
-            </div>
-            
-            {screenshots.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                {screenshots.map((screenshot, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={screenshot}
-                      alt={`Screenshot ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg border border-stone-200 dark:border-white/10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeScreenshot(index)}
-                      className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 

@@ -53,12 +53,12 @@ export function ProjectActions({
     }
 
     try {
-      const response = await fetch('/api/projects/join-request', {
+      const response = await fetch(`/api/projects/${projectId}/requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ projectId }),
+        body: JSON.stringify({}),
       });
 
       if (!response.ok) {

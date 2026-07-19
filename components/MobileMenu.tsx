@@ -127,7 +127,7 @@ export default function MobileMenu({ isOpen, onClose, isDarkMode, setIsDarkMode 
 
   // 4️⃣ PROJECT ACTIONS - ✅ Protected (only shown when authenticated)
 const projectActionLinks = [
-  { href: '/dashboard/projects/create', label: 'Create Project', icon: Plus, description: 'Start a new project' },
+  { href: '/dashboard/projects/new', label: 'Create Project', icon: Plus, description: 'Start a new project' },
   { href: '/dashboard/projects', label: 'Manage Projects', icon: FolderOpen, description: 'Manage your projects' },
 ];
 
