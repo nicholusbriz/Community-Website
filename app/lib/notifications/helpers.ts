@@ -45,7 +45,7 @@ export async function notifyJoinRequest(
     title: 'New Join Request',
     message: `${requesterName} has requested to join "${project.title}"`,
     type: 'REQUEST',
-    link: `/dashboard/projects/${projectId}/join-requests`,
+    link: `/dashboard/projects/${projectId}/dashboard`,
     projectId: projectId,
   });
 }

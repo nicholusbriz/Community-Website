@@ -109,8 +109,7 @@ export async function GET(
   }
 }
 
-// PUT /api/projects/[id]/tasks/[taskId] - Assign a task to a user
-// Consolidated endpoint - replaces separate assign endpoint
+// PUT /api/projects/[id]/tasks/[taskId] - Update a task (general update or assignment)
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string; taskId: string }> }
@@ -118,7 +117,8 @@ export async function PUT(
   try {
     const { id: projectId, taskId } = await params;
     const auth = await getAuthUser(request);
-    const { assignedToId } = await request.json();
+    const body = await request.json();
+    const { assignedToId, title, description, status, dueDate, priority, labels } = body;
 
     // Check if task exists and belongs to project
     const task = await prisma.task.findFirst({
@@ -167,51 +167,116 @@ export async function PUT(
 
     if (!isOwner && !isLead) {
       return NextResponse.json(
-        { error: 'Only project owners and team leads can assign tasks' },
+        { error: 'Only project owners and team leads can update tasks' },
         { status: 403 }
       );
     }
 
-    // Check if the user to assign is a member of the project
-    const member = await prisma.projectMember.findFirst({
-      where: {
-        projectId: projectId,
-        userId: assignedToId,
-        status: 'ACTIVE',
-      },
-    });
+    // Handle assignment (if assignedToId is provided)
+    if (assignedToId !== undefined) {
+      // Check if the user to assign is a member of the project
+      const member = await prisma.projectMember.findFirst({
+        where: {
+          projectId: projectId,
+          userId: assignedToId,
+          status: 'ACTIVE',
+        },
+      });
 
-    const lead = await prisma.projectLead.findFirst({
-      where: {
-        projectId: projectId,
-        userId: assignedToId,
-      },
-    });
+      const lead = await prisma.projectLead.findFirst({
+        where: {
+          projectId: projectId,
+          userId: assignedToId,
+        },
+      });
 
-    // Check if it's the project owner
-    const isOwnerBeingAssigned = project.ownerId === assignedToId;
+      // Check if it's the project owner
+      const isOwnerBeingAssigned = project.ownerId === assignedToId;
 
-    if (!member && !lead && !isOwnerBeingAssigned) {
-      return NextResponse.json(
-        { error: 'User is not a member of this project' },
-        { status: 403 }
-      );
+      if (!member && !lead && !isOwnerBeingAssigned) {
+        return NextResponse.json(
+          { error: 'User is not a member of this project' },
+          { status: 403 }
+        );
+      }
+
+      // Get assigner name for notification
+      const assigner = await prisma.user.findUnique({
+        where: { id: auth.userId },
+        select: { name: true },
+      });
+
+      // Update the task with the assigned user
+      const updatedTask = await prisma.task.update({
+        where: { id: taskId },
+        data: {
+          assignedToId: assignedToId,
+          assignedById: auth.userId,
+          status: 'ASSIGNED',
+        },
+        include: {
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+          assignedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+      });
+
+      // Send notification if task is assigned to someone
+      if (assignedToId) {
+        await notifyTaskAssigned(
+          projectId,
+          taskId,
+          assignedToId,
+          task.title,
+          assigner?.name || 'A project lead'
+        );
+      }
+
+      // Log activity
+      await prisma.activityLog.create({
+        data: {
+          projectId: projectId,
+          userId: auth.userId,
+          action: 'TASK_ASSIGNED',
+          details: {
+            taskId: taskId,
+            assignedToId: assignedToId,
+            taskTitle: task.title,
+            assignedToName: updatedTask.assignedTo?.name || 'Unknown',
+            assignedBy: auth.userId,
+            assignedByName: assigner?.name || 'Unknown',
+          },
+        },
+      });
+
+      return NextResponse.json(updatedTask);
     }
 
-    // Get assigner name for notification
-    const assigner = await prisma.user.findUnique({
-      where: { id: auth.userId },
-      select: { name: true },
-    });
+    // Handle general task updates (title, description, status, etc.)
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (status !== undefined) updateData.status = status;
+    if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null;
+    if (priority !== undefined) updateData.priority = priority;
+    if (labels !== undefined) updateData.labels = labels;
 
-    // Update the task with the assigned user
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
-      data: {
-        assignedToId: assignedToId,
-        assignedById: auth.userId,
-        status: 'ASSIGNED', // ✅ Auto-set status to ASSIGNED
-      },
+      data: updateData,
       include: {
         assignedTo: {
           select: {
@@ -226,44 +291,32 @@ export async function PUT(
             id: true,
             name: true,
             email: true,
+            image: true,
           },
         },
       },
     });
 
-    // ✅ Send notification if task is assigned to someone
-    if (assignedToId) {
-      await notifyTaskAssigned(
-        projectId,
-        taskId,
-        assignedToId,
-        task.title,
-        assigner?.name || 'A project lead'
-      );
-    }
-
-    // Log activity - using TASK_ASSIGNED
+    // Log activity
     await prisma.activityLog.create({
       data: {
         projectId: projectId,
         userId: auth.userId,
-        action: 'TASK_ASSIGNED',
+        action: 'TASK_STATUS_CHANGED',
         details: {
           taskId: taskId,
-          assignedToId: assignedToId,
           taskTitle: task.title,
-          assignedToName: updatedTask.assignedTo?.name || 'Unknown',
-          assignedBy: auth.userId,
-          assignedByName: assigner?.name || 'Unknown',
+          updatedBy: auth.userId,
+          updatedByName: auth.user.name || 'Unknown',
         },
       },
     });
 
     return NextResponse.json(updatedTask);
   } catch (error) {
-    console.error('Error assigning member:', error);
+    console.error('Error updating task:', error);
     return NextResponse.json(
-      { error: 'Failed to assign member to task' },
+      { error: 'Failed to update task' },
       { status: 500 }
     );
   }

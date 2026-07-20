@@ -2,13 +2,14 @@
 import { useProject } from '@/app/lib/hooks/useProjects';
 import { useAnalytics } from './useAnalytics';
 import { useMembers } from './useMembers';
-import { useJoinRequests } from './useJoinRequests';
+import { useJoinRequests } from './useJoinRequests'; // ✅ This now points to the correct file
 import { useActivities } from './useActivities';
 import { useProjectChat } from '@/app/lib/hooks/useProjectChat';
 import { useCallback } from 'react';
+import { useAuth } from '@/app/lib/auth/useAuth';
 
 // Import Prisma types
-import type { User, JoinRequest, ProjectMember, Task } from '@prisma/client';
+import type { User, JoinRequest } from '@prisma/client';
 
 // ✅ Updated interface - removed projectType and visibility
 interface ProjectWithRelations {
@@ -22,9 +23,6 @@ interface ProjectWithRelations {
   currentMembers: number;
   status: string;
   difficulty: string;
-  // ✅ REMOVED: projectType
-  // ✅ REMOVED: visibility
-  // ✅ REMOVED: screenshots
   duration: string | null;
   repositoryUrl: string | null;
   demoUrl: string | null;
@@ -146,9 +144,13 @@ interface DashboardData {
     messages: ChatMessageWithUser[];
     isLoading: boolean;
   };
+  isOwner: boolean;
+  isLead: boolean;
 }
 
 export function useDashboardData(projectId: string) {
+  const { user } = useAuth();
+  
   // Fetch all data using React Query hooks
   const project = useProject(projectId);
   const analytics = useAnalytics(projectId);
@@ -157,17 +159,28 @@ export function useDashboardData(projectId: string) {
   const activities = useActivities(projectId);
   const chat = useProjectChat(projectId);
 
-  // Combine loading states
+  // Get project data to check permissions
+  const projectData = project.data?.project;
+  const isOwner = projectData?.ownerId === user?.id;
+  const isLead = projectData?.leads?.some((lead: any) => lead.userId === user?.id) || false;
+  const canViewRequests = isOwner || isLead;
+
+  // Combine loading states - ✅ Only wait for joinRequests if can view
   const isLoading = 
     project.isLoading || 
     analytics.isLoading || 
     members.isLoading || 
-    joinRequests.isLoading || 
+    (canViewRequests ? joinRequests.isLoading : false) ||
     activities.isLoading ||
     chat.isLoading;
 
-  // Combine errors
-  const error = project.error || analytics.error || members.error || joinRequests.error || activities.error || chat.error;
+  // Combine errors - ✅ Ignore joinRequests errors if can't view
+  const error = project.error || 
+                analytics.error || 
+                members.error || 
+                (canViewRequests ? joinRequests.error : null) || 
+                activities.error || 
+                chat.error;
 
   // Combined data with proper fallbacks
   const data: DashboardData = {
@@ -178,12 +191,15 @@ export function useDashboardData(projectId: string) {
     },
     members: (members.data as any)?.members || [],
     owner: (members.data as any)?.owner || null,
-    joinRequests: (joinRequests.data as any)?.joinRequests || [],
+    // ✅ Only include joinRequests if user can view them
+    joinRequests: canViewRequests ? ((joinRequests.data as any)?.requests || []) : [],
     activities: (activities.data as any)?.activities || [],
     chat: {
       messages: (chat.data as any)?.messages || [],
       isLoading: chat.isLoading || false,
     },
+    isOwner,
+    isLead,
   };
 
   // Refresh all data
@@ -191,11 +207,11 @@ export function useDashboardData(projectId: string) {
     project.refetch();
     analytics.refetch();
     members.refetch();
-    joinRequests.refetch();
+    if (canViewRequests) {
+      joinRequests.refetch();
+    }
     activities.refetch();
-  }, [project, analytics, members, joinRequests, activities]);
-
-  // ✅ REMOVED: addMember function - members are now added only through join requests
+  }, [project, analytics, members, joinRequests, activities, canViewRequests]);
 
   // Remove member function
   const removeMember = useCallback(async (userId: string) => {
@@ -213,7 +229,7 @@ export function useDashboardData(projectId: string) {
     analytics.refetch();
   }, [projectId, members, analytics]);
 
-  // ✅ Make project lead function
+  // Make project lead function
   const makeProjectLead = useCallback(async (userId: string) => {
     const response = await fetch(`/api/projects/${projectId}/members/${userId}/make-lead`, {
       method: 'PATCH',
@@ -234,7 +250,7 @@ export function useDashboardData(projectId: string) {
     return await response.json();
   }, [projectId, members, analytics]);
 
-  // ✅ Remove project lead function (NEW)
+  // Remove project lead function
   const removeProjectLead = useCallback(async (userId: string) => {
     const response = await fetch(`/api/projects/${projectId}/members/${userId}/make-lead`, {
       method: 'DELETE',
@@ -252,8 +268,12 @@ export function useDashboardData(projectId: string) {
     return await response.json();
   }, [projectId, members, analytics]);
 
-  // Mutations for join requests - ✅ Updated endpoints
+  // Mutations for join requests
   const approveRequest = useCallback(async (requestId: string) => {
+    if (!canViewRequests) {
+      throw new Error('You do not have permission to approve requests');
+    }
+    
     const response = await fetch(`/api/projects/${projectId}/requests/${requestId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -269,9 +289,13 @@ export function useDashboardData(projectId: string) {
     joinRequests.refetch();
     members.refetch();
     analytics.refetch();
-  }, [projectId, joinRequests, members, analytics]);
+  }, [projectId, joinRequests, members, analytics, canViewRequests]);
 
   const rejectRequest = useCallback(async (requestId: string, reason?: string) => {
+    if (!canViewRequests) {
+      throw new Error('You do not have permission to reject requests');
+    }
+    
     const response = await fetch(`/api/projects/${projectId}/requests/${requestId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -285,7 +309,7 @@ export function useDashboardData(projectId: string) {
 
     // Refetch data
     joinRequests.refetch();
-  }, [projectId, joinRequests]);
+  }, [projectId, joinRequests, canViewRequests]);
 
   // Chat functions
   const sendMessage = useCallback(
@@ -307,10 +331,9 @@ export function useDashboardData(projectId: string) {
     isLoading,
     error,
     refetch,
-    // REMOVED: addMember - members are added through join requests only
     removeMember,
-    makeProjectLead, // Make a member a project lead
-    removeProjectLead, // Remove a member from project lead
+    makeProjectLead,
+    removeProjectLead,
     approveRequest,
     rejectRequest,
     sendMessage,

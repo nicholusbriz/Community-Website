@@ -156,9 +156,7 @@ export default function TopBar({
       await markAsRead(notification.id);
     }
     setNotificationsOpen(false);
-    if (notification.link) {
-      router.push(notification.link);
-    }
+    router.push('/dashboard/notifications');
   };
 
   const handleMarkAllRead = async () => {
