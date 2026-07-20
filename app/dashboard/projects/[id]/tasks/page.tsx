@@ -143,10 +143,9 @@ export default function TasksPage({ params }: TasksPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             {/* Back button goes to Project Dashboard */}
             <Link
@@ -315,6 +314,5 @@ export default function TasksPage({ params }: TasksPageProps) {
           )}
         </div>
       </div>
-    </div>
   );
 }

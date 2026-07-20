@@ -74,74 +74,72 @@ export default function DashboardPage({ params }: DashboardPageProps) {
   const pendingRequests = joinRequests?.filter((r: any) => r.status === 'PENDING')?.length || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header */}
-        <DashboardHeader 
-          project={project} 
-          isOwner={isOwner}
-          pendingRequests={pendingRequests}
-          onRefresh={refetch}
-          projectId={id}
-        />
+    <div className="space-y-6">
+      {/* Header */}
+      <DashboardHeader 
+        project={project} 
+        isOwner={isOwner}
+        pendingRequests={pendingRequests}
+        onRefresh={refetch}
+        projectId={id}
+      />
 
-        {/* Stats Grid */}
-        <StatsGrid 
-          project={project}
-          analytics={analytics}
-          pendingRequests={pendingRequests}
-        />
+      {/* Stats Grid */}
+      <StatsGrid 
+        project={project}
+        analytics={analytics}
+        pendingRequests={pendingRequests}
+      />
 
-        {/* Progress & Task Distribution */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <ProgressSection project={project} />
-          <TaskDistribution tasks={taskStats} />
-        </div>
-
-        {/* Members Section - Removed onAddMember prop */}
-        <MembersSection 
-          members={members || []}
-          owner={owner}
-          isOwner={isOwner}
-          projectId={id}
-          onRemoveMember={removeMember}
-          onMakeProjectLead={makeProjectLead} // Add this prop
-        />
-
-        {/* Join Requests Section */}
-        {isOwner && (
-          <JoinRequestsSection 
-            requests={joinRequests || []}
-            onApprove={approveRequest}
-            onReject={rejectRequest}
-            onRefresh={refetch}
-          />
-        )}
-
-        {/* Activity Section */}
-        <ActivitySection 
-          activities={activities || []}
-          onRefresh={refetch}
-        />
-
-        {/* Chat Widget */}
-        <ChatWidget 
-          chat={{
-            messages: chat?.messages || [],
-            isLoading: chat?.isLoading || false
-          }}
-          projectId={id}
-          isMember={true}
-          onSendMessage={sendMessage}
-          onSendReply={sendReply}
-        />
-
-        {/* Recent Tasks */}
-        <RecentTasks 
-          tasks={project.tasks || []}
-          projectId={id}
-        />
+      {/* Progress & Task Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ProgressSection project={project} />
+        <TaskDistribution tasks={taskStats} />
       </div>
+
+      {/* Members Section - Removed onAddMember prop */}
+      <MembersSection 
+        members={members || []}
+        owner={owner}
+        isOwner={isOwner}
+        projectId={id}
+        onRemoveMember={removeMember}
+        onMakeProjectLead={makeProjectLead} // Add this prop
+      />
+
+      {/* Join Requests Section */}
+      {isOwner && (
+        <JoinRequestsSection 
+          requests={joinRequests || []}
+          onApprove={approveRequest}
+          onReject={rejectRequest}
+          onRefresh={refetch}
+        />
+      )}
+
+      {/* Activity Section */}
+      <ActivitySection 
+        activities={activities || []}
+        onRefresh={refetch}
+      />
+
+      {/* Chat Widget */}
+      <ChatWidget 
+        chat={{
+          messages: chat?.messages || [],
+          isLoading: chat?.isLoading || false
+        }}
+        projectId={id}
+        isMember={true}
+        onSendMessage={sendMessage}
+        onSendReply={sendReply}
+      />
+
+      {/* Recent Tasks */}
+      <RecentTasks 
+        tasks={project.tasks || []}
+        projectId={id}
+      />
     </div>
   );
 }

@@ -2,8 +2,9 @@
 'use client';
 
 import { useState, useEffect, type ReactNode } from 'react';
-import { Filter, Heart, MessageCircle, ArrowRight, Star } from 'lucide-react';
+import { Filter, Heart, MessageCircle, ArrowRight, Star, User, MapPin, Clock, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function PageShell({ children }: { children: ReactNode }) {
   return <div className="min-h-screen bg-gray-50 text-black">{children}</div>;
@@ -36,32 +37,143 @@ function FilterBar({ searchValue, onSearchChange, searchPlaceholder, filters }: 
   );
 }
 
-function ProjectCard({ title, tech, owner, likes, href, isLoading }: { title?: string; tech?: string; owner?: string; likes?: number; href?: string; isLoading?: boolean }) {
+function ProjectCard({ 
+  title, 
+  tech, 
+  owner, 
+  ownerImage,
+  ownerId,
+  description,
+  likes, 
+  href, 
+  isLoading 
+}: { 
+  title?: string; 
+  tech?: string[]; 
+  owner?: string; 
+  ownerImage?: string;
+  ownerId?: string;
+  description?: string;
+  likes?: number; 
+  href?: string; 
+  isLoading?: boolean 
+}) {
   if (isLoading) {
     return (
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm animate-pulse">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
-          <div className="h-4 w-12 bg-gray-200 rounded"></div>
+        <div className="mb-4 flex items-center gap-3">
+          <div className="h-12 w-12 bg-gray-200 rounded-full"></div>
+          <div className="flex-1">
+            <div className="h-4 w-24 bg-gray-200 rounded mb-2"></div>
+            <div className="h-3 w-16 bg-gray-200 rounded"></div>
+          </div>
         </div>
         <div className="h-6 w-3/4 bg-gray-200 rounded mb-2"></div>
-        <div className="h-4 w-1/2 bg-gray-200 rounded"></div>
+        <div className="h-4 w-full bg-gray-200 rounded mb-4"></div>
+        <div className="flex gap-2">
+          <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
+          <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <Link href={href || '#'} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl block">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="rounded-full bg-[#0070f3]/10 px-3 py-1 text-sm font-medium text-[#0070f3]">{tech || 'Unknown'}</span>
-        <span className="flex items-center gap-1 text-sm text-gray-500">
-          <Star className="h-4 w-4 text-yellow-400" />
-          {likes || 0}
-        </span>
+    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl overflow-hidden group">
+      {/* Card Header - Clickable for project details */}
+      <Link href={href || '#'} className="block p-6">
+        {/* Tech Stack Tags */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          {tech && tech.length > 0 ? (
+            tech.slice(0, 3).map((t, index) => (
+              <span key={index} className="rounded-full bg-[#0070f3]/10 px-3 py-1 text-xs font-medium text-[#0070f3]">
+                {t}
+              </span>
+            ))
+          ) : (
+            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+              Unknown
+            </span>
+          )}
+          {tech && tech.length > 3 && (
+            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+              +{tech.length - 3}
+            </span>
+          )}
+        </div>
+
+        {/* Project Title */}
+        <h3 className="mb-2 text-lg font-semibold text-gray-900 group-hover:text-[#0070f3] transition-colors">
+          {title || 'Untitled Project'}
+        </h3>
+
+        {/* Project Description */}
+        {description && (
+          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+            {description}
+          </p>
+        )}
+
+        {/* Stats */}
+        <div className="flex items-center gap-4 text-sm text-gray-500">
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 text-yellow-400" />
+            <span>{likes || 0} members</span>
+          </div>
+        </div>
+      </Link>
+
+      {/* Card Footer - Owner Profile Section */}
+      <div className="border-t border-gray-100 bg-gray-50 px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Owner Profile - Clickable */}
+          <Link 
+            href={`/developers/${ownerId}`}
+            className="flex items-center gap-3 group/profile hover:bg-gray-100 rounded-lg px-2 py-1 transition-colors"
+          >
+            {/* Owner Avatar */}
+            <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+              {ownerImage ? (
+                <Image
+                  src={ownerImage}
+                  alt={owner || 'Owner avatar'}
+                  fill
+                  className="object-cover"
+                  sizes="40px"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
+                  {owner?.[0]?.toUpperCase() || 'U'}
+                </div>
+              )}
+            </div>
+
+            {/* Owner Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-medium text-gray-900 group-hover/profile:text-[#0070f3] transition-colors">
+                  {owner || 'Unknown Owner'}
+                </span>
+                <User className="h-3 w-3 text-gray-400" />
+              </div>
+              <p className="text-xs text-gray-500">Project Owner</p>
+            </div>
+
+            {/* External Link Icon */}
+            <ExternalLink className="h-4 w-4 text-gray-400 group-hover/profile:text-[#0070f3] transition-colors" />
+          </Link>
+
+          {/* View Project Button */}
+          <Link 
+            href={href || '#'}
+            className="text-sm font-medium text-[#0070f3] hover:text-[#0050d0] transition-colors flex items-center gap-1"
+          >
+            View Project
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
-      <h3 className="mb-2 text-lg font-semibold text-gray-900">{title || 'Untitled'}</h3>
-      <p className="text-sm text-gray-600">By {owner || 'Unknown'}</p>
-    </Link>
+    </div>
   );
 }
 
@@ -99,8 +211,11 @@ export default function ProjectsPage() {
         const formattedProjects = data.projects.map((project: any) => ({
           id: project.id,
           title: project.title,
-          tech: project.techStack && project.techStack.length > 0 ? project.techStack[0] : 'Unknown',
+          tech: project.techStack || [],
           owner: project.owner?.name || 'Unknown',
+          ownerImage: project.owner?.image || null,
+          ownerId: project.owner?.id || null,
+          description: project.description || null,
           likes: project._count?.members || 0,
           href: `/projects/${project.slug}`,
           // Keep original data for filtering
