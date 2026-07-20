@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useUsersDirectory } from '@/app/lib/hooks/useUsersDirectory'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Search, 
   X, 
@@ -196,8 +197,20 @@ export default function DevelopersPage() {
               >
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
-                  <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
-                    {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U'}
+                  <div className="relative w-16 h-16 rounded-full flex-shrink-0 overflow-hidden">
+                    {user.image ? (
+                      <Image
+                        src={user.image}
+                        alt={user.name || 'User avatar'}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 64px, 64px"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white text-xl font-bold">
+                        {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                    )}
                     {/* Online status indicator */}
                     {user.isActive && (
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-[#1a1a1a]"></div>

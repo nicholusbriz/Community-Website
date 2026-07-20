@@ -8,7 +8,7 @@ export function useJoinRequests(projectId: string, status?: string) {
   
   return useQuery({
     queryKey: ['join-requests', projectId, status],
-    queryFn: () => api.get(`/api/projects/${projectId}/join-requests${queryString}`),
+    queryFn: () => api.get(`/api/projects/${projectId}/requests${queryString}`),
     enabled: !!projectId,
     staleTime: 30 * 1000, // 30 seconds
   });
@@ -59,7 +59,7 @@ export function useCreateJoinRequest(projectId: string) {
 
   return useMutation({
     mutationFn: (data: { message?: string; skills?: string[]; experience?: string }) => 
-      api.post(`/api/projects/${projectId}/join-requests`, data),
+      api.post(`/api/projects/${projectId}/requests`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['join-requests', projectId] });
     },
@@ -75,7 +75,7 @@ export function useCancelJoinRequest(projectId: string) {
 
   return useMutation({
     mutationFn: (requestId: string) => 
-      api.delete(`/api/projects/${projectId}/join-requests/${requestId}`),
+      api.delete(`/api/projects/${projectId}/requests/${requestId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['join-requests', projectId] });
     },
@@ -89,7 +89,7 @@ export function useCancelJoinRequest(projectId: string) {
 export function useJoinRequest(projectId: string, requestId: string) {
   return useQuery({
     queryKey: ['join-request', projectId, requestId],
-    queryFn: () => api.get(`/api/projects/${projectId}/join-requests/${requestId}`),
+    queryFn: () => api.get(`/api/projects/${projectId}/requests/${requestId}`),
     enabled: !!projectId && !!requestId,
     staleTime: 30 * 1000,
   });
