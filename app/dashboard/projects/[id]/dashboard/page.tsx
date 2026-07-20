@@ -26,7 +26,7 @@ interface DashboardPageProps {
 export default function DashboardPage({ params }: DashboardPageProps) {
   const router = useRouter();
   const { id } = React.use(params);
-  const { actions, isLoading: authLoading, user } = useAuth();
+  const { actions, isLoading: authLoading } = useAuth();
   const isAuthenticated = actions.isAuthenticated();
 
   // Fetch all dashboard data
@@ -40,7 +40,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     rejectRequest,
     sendMessage,
     sendReply,
-    makeProjectLead // Add this new function
+    makeProjectLead
   } = useDashboardData(id);
 
   // Redirect if not authenticated
@@ -66,15 +66,14 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     );
   }
 
-  const { project, analytics, members, owner, joinRequests, activities, chat } = data;
-  const isOwner = user?.id === project?.ownerId;
+  const { project, analytics, members, owner, joinRequests, activities, chat, isOwner } = data;
   
   // Safe access with fallbacks
   const taskStats = analytics?.taskStats || [];
   const pendingRequests = joinRequests?.filter((r: any) => r.status === 'PENDING')?.length || 0;
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <DashboardHeader 
         project={project} 
@@ -97,17 +96,17 @@ export default function DashboardPage({ params }: DashboardPageProps) {
         <TaskDistribution tasks={taskStats} />
       </div>
 
-      {/* Members Section - Removed onAddMember prop */}
+      {/* Members Section */}
       <MembersSection 
         members={members || []}
         owner={owner}
         isOwner={isOwner}
         projectId={id}
         onRemoveMember={removeMember}
-        onMakeProjectLead={makeProjectLead} // Add this prop
+        onMakeProjectLead={makeProjectLead}
       />
 
-      {/* Join Requests Section */}
+      {/* ✅ Join Requests Section - Only shown if user is owner */}
       {isOwner && (
         <JoinRequestsSection 
           requests={joinRequests || []}

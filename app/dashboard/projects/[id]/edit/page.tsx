@@ -270,7 +270,7 @@ export default function EditProjectPage({ params }: EditProjectPageProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="w-full max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 overflow-x-hidden">
       {/* Header */}
       <div className="mb-8">
         <Link 

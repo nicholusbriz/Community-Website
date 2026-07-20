@@ -12,6 +12,11 @@ interface RecentTasksProps {
 export function RecentTasks({ tasks, projectId }: RecentTasksProps) {
   const router = useRouter();
 
+  // ✅ Updated: Navigate to tasks page instead of task detail
+  const handleTaskClick = () => {
+    router.push(`/dashboard/projects/${projectId}/tasks`);
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-all duration-200">
       <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -32,7 +37,8 @@ export function RecentTasks({ tasks, projectId }: RecentTasksProps) {
           tasks.slice(0, 5).map((task: any) => (
             <div
               key={task.id}
-              onClick={() => router.push(`/dashboard/projects/${projectId}/tasks/${task.id}`)}
+              // ✅ Updated: Navigate to tasks page instead of task detail
+              onClick={handleTaskClick}
               className="cursor-pointer hover:bg-gray-50 transition-colors duration-150 group p-4"
             >
               <div className="flex items-center justify-between">

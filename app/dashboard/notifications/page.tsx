@@ -200,14 +200,6 @@ export default function NotificationsPage() {
                           View Project →
                         </Link>
                       )}
-                      {notification.link && (
-                        <Link
-                          href={notification.link}
-                          className="text-sm text-blue-600 hover:text-blue-800 mt-2 inline-block ml-3"
-                        >
-                          View Details →
-                        </Link>
-                      )}
                       <div className="flex items-center gap-3 mt-3">
                         {!notification.isRead && (
                           <button
